@@ -1,35 +1,101 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>Public Domain Movies</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公版映像馆 · 经典电影</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f0f10; font-family: system-ui, -apple-system, sans-serif; color: white; }
+        .navbar { background: #111; padding: 1rem 5%; text-align: center; font-size: 1.8rem; font-weight: bold; color: #e50914; }
+        .hero { background: #1a1a1f; text-align: center; padding: 3rem 1rem; margin: 1rem; border-radius: 24px; }
+        .hero h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .hero button { background: #e50914; border: none; color: white; padding: 0.8rem 2rem; font-size: 1rem; border-radius: 40px; cursor: pointer; }
+        .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; padding: 2rem 5%; }
+        .movie-card { background: #1c1c1f; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
+        .movie-card:hover { transform: scale(1.02); }
+        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .movie-info { padding: 0.8rem; }
+        .movie-title { font-weight: 600; margin-bottom: 0.2rem; }
+        .movie-year { font-size: 0.8rem; color: #aaa; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: #000; width: 90%; max-width: 800px; border-radius: 16px; overflow: hidden; }
+        .modal-content video { width: 100%; aspect-ratio: 16/9; }
+        .close { background: white; color: black; padding: 0.2rem 0.8rem; border-radius: 20px; float: right; margin: 0.5rem; cursor: pointer; }
+    </style>
 </head>
 <body>
+    <div class="navbar">🎬 公版映像馆</div>
+    <div class="hero">
+        <h2 id="heroTitle">加载中...</h2>
+        <button id="heroPlayBtn">立即播放</button>
+    </div>
+    <div class="movies-grid" id="moviesGrid">加载经典影片...</div>
 
-<header class="navbar">
-  <h1>🎬 MovieHub</h1>
-</header>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <video id="modalVideo" controls></video>
+        </div>
+    </div>
 
-<!-- Banner -->
-<section id="banner">
-  <div class="banner-content">
-    <h2 id="banner-title"></h2>
-    <button id="play-banner">▶ Play</button>
-  </div>
-</section>
+    <script>
+        // 公有领域电影数据（示例）
+        const movies = [
+            { title: "The Circus", year: 1928, genre: "Comedy", poster: "https://via.placeholder.com/300x450?text=The+Circus", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+            { title: "All Quiet on the Western Front", year: 1930, genre: "Drama", poster: "https://via.placeholder.com/300x450?text=All+Quiet", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+            { title: "Metropolis", year: 1927, genre: "Sci-Fi", poster: "https://via.placeholder.com/300x450?text=Metropolis", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
+        ];
 
-<!-- 分类 -->
-<main id="categories"></main>
+        let currentMovie = movies[0];
 
-<!-- 播放器 -->
-<div id="player-modal" class="hidden">
-  <div class="player-container">
-    <span id="close-btn">✖</span>
-    <video id="video-player" controls></video>
-  </div>
-</div>
+        function renderMovies() {
+            const grid = document.getElementById('moviesGrid');
+            grid.innerHTML = movies.map(m => `
+                <div class="movie-card" data-title="${m.title}">
+                    <img src="${m.poster}" alt="${m.title}" loading="lazy">
+                    <div class="movie-info">
+                        <div class="movie-title">${m.title}</div>
+                        <div class="movie-year">${m.year}</div>
+                    </div>
+                </div>
+            `).join('');
+            // 绑定卡片点击
+            document.querySelectorAll('.movie-card').forEach((card, idx) => {
+                card.addEventListener('click', () => playMovie(movies[idx]));
+            });
+            // 设置 hero 为第一部电影
+            setHeroMovie(movies[0]);
+        }
 
-<script src="script.js"></script>
+        function setHeroMovie(movie) {
+            currentMovie = movie;
+            document.getElementById('heroTitle').innerText = movie.title;
+            const heroBtn = document.getElementById('heroPlayBtn');
+            // 移除旧监听，避免重复
+            const newBtn = heroBtn.cloneNode(true);
+            heroBtn.parentNode.replaceChild(newBtn, heroBtn);
+            newBtn.addEventListener('click', () => playMovie(movie));
+        }
+
+        function playMovie(movie) {
+            const modal = document.getElementById('modal');
+            const video = document.getElementById('modalVideo');
+            video.src = movie.videoUrl;
+            modal.classList.add('active');
+            video.play();
+        }
+
+        document.getElementById('closeModal').addEventListener('click', () => {
+            const modal = document.getElementById('modal');
+            const video = document.getElementById('modalVideo');
+            modal.classList.remove('active');
+            video.pause();
+            video.src = '';
+        });
+
+        renderMovies();
+    </script>
 </body>
 </html>
