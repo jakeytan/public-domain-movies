@@ -110,7 +110,75 @@
         .logo:hover .logo-tagline {
             color: #e50914;
         }
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.16);
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
 
+        .nav-link:hover {
+            background: rgba(255,255,255,0.14);
+            transform: translateY(-1px);
+        }
+
+        .live-entry {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1.25rem;
+            align-items: center;
+        }
+
+        .live-entry-card,
+        .live-entry-meta {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 1.8rem;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+        }
+
+        .live-entry-card h2 {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .live-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: #fff;
+            background: rgba(229,9,20,0.12);
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+        }
+
+        .live-entry-meta {
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .live-entry-meta div {
+            font-size: 0.95rem;
+            color: #e7e7e7;
+        }
+
+        .live-entry-meta strong {
+            display: block;
+            margin-bottom: 0.35rem;
+            color: #fff;
+        }
         /* Hero 大屏区域 */
         .hero {
             position: relative;
@@ -426,7 +494,9 @@
             <div class="logo-tagline">经典电影 · 自由分享</div>
         </div>
     </div>
-    <div></div>
+    <div>
+        <a class="nav-link" href="live.html">直播入口</a>
+    </div>
 </nav>
 
 <section class="hero" id="heroSection">
@@ -438,6 +508,29 @@
         <p class="hero-overview" id="heroOverview"></p>
         <div class="hero-meta">
             <button class="btn-play" id="heroPlayBtn">▶ 立即播放</button>
+        </div>
+    </div>
+</section>
+
+<section class="live-entry">
+    <div class="live-entry-card">
+        <div class="live-label">LIVE 直播推流</div>
+        <h2>实时电影直播入口</h2>
+        <p>立即进入我们的直播间，支持频道切换、节目预告和实时播放体验。现已接入 HLS 实时流媒体播放器，可直接替换成正式推流源。</p>
+        <a class="btn-play" href="live.html">进入直播间</a>
+    </div>
+    <div class="live-entry-meta">
+        <div>
+            <strong>当前直播频道</strong>
+            经典电影巡礼频道
+        </div>
+        <div>
+            <strong>下一个节目</strong>
+            20:00 公版电影连播 · 22:30 影史纪录片回顾
+        </div>
+        <div>
+            <strong>直播说明</strong>
+            支持 HLS 实时播放，未来可扩展成 RTMP/WebRTC 推流入口。
         </div>
     </div>
 </section>
