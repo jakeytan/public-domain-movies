@@ -35,13 +35,68 @@
         }
 
         .logo {
-            font-size: 1.6rem;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .logo:hover {
+            transform: translateY(-2px);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e50914 0%, #ff4444 100%);
+            border-radius: 8px;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+            transition: all 0.3s;
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(6deg) scale(1.05);
+            box-shadow: 0 6px 16px rgba(229, 9, 20, 0.6);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .logo-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #e50914 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            cursor: pointer;
+            letter-spacing: -0.5px;
+            transition: all 0.3s;
+        }
+
+        .logo:hover .logo-brand {
+            font-size: 1.55rem;
+        }
+
+        .logo-tagline {
+            font-size: 0.65rem;
+            color: #a3a3a3;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .logo:hover .logo-tagline {
+            color: #e50914;
         }
 
         .back-btn {
@@ -510,13 +565,33 @@
             .recommendations {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
+            .logo {
+                gap: 8px;
+            }
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+            .logo-brand {
+                font-size: 1.2rem;
+            }
+            .logo-tagline {
+                font-size: 0.6rem;
+            }
         }
     </style>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="logo" onclick="goHome()">🎬 鑫艺影像馆</div>
+    <div class="logo" onclick="goHome()">
+        <div class="logo-icon">🎬</div>
+        <div class="logo-text">
+            <div class="logo-brand">鑫艺影像馆</div>
+            <div class="logo-tagline">经典电影 · 自由分享</div>
+        </div>
+    </div>
     <button class="back-btn" onclick="goHome()">← 返回首页</button>
 </nav>
 
