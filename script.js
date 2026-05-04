@@ -1,80 +1,16 @@
-const movies = [
-  {
-    title: "Night of the Living Dead",
-    category: "Horror",
-    poster: "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead.jpg",
-    src: "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4"
-  },
-  {
-    title: "The General",
-    category: "Classic",
-    poster: "https://archive.org/download/TheGeneral1926/TheGeneral1926.jpg",
-    src: "https://archive.org/download/TheGeneral1926/TheGeneral1926_512kb.mp4"
-  },
-  {
-    title: "His Girl Friday",
-    category: "Comedy",
-    poster: "https://archive.org/download/his_girl_friday/his_girl_friday.jpg",
-    src: "https://archive.org/download/his_girl_friday/his_girl_friday_512kb.mp4"
-  },
-  {
-    title: "Sherlock Holmes",
-    category: "Classic",
-    poster: "https://archive.org/download/SherlockHolmesAndTheSecretWeapon/Sherlock.jpg",
-    src: "https://archive.org/download/SherlockHolmesAndTheSecretWeapon/SherlockHolmesAndTheSecretWeapon_512kb.mp4"
-  }
-];
+const API_URL = "https://archive.org/advancedsearch.php?q=mediatype:movies&output=json&rows=50";
 
-// ===== Banner =====
+// DOM
+const container = document.getElementById("categories");
 const banner = document.getElementById("banner");
 const bannerTitle = document.getElementById("banner-title");
 const playBanner = document.getElementById("play-banner");
 
-const featured = movies[0];
-
-banner.style.backgroundImage = `url(${featured.poster})`;
-bannerTitle.innerText = featured.title;
-
-playBanner.onclick = () => playMovie(featured.src);
-
-// ===== 分类生成 =====
-const categories = {};
-
-movies.forEach(m => {
-  if (!categories[m.category]) {
-    categories[m.category] = [];
-  }
-  categories[m.category].push(m);
-});
-
-const container = document.getElementById("categories");
-
-Object.keys(categories).forEach(cat => {
-  const section = document.createElement("div");
-  section.className = "category";
-
-  section.innerHTML = `<h2>${cat}</h2><div class="movie-row"></div>`;
-  const row = section.querySelector(".movie-row");
-
-  categories[cat].forEach(movie => {
-    const div = document.createElement("div");
-    div.className = "movie";
-
-    div.innerHTML = `<img src="${movie.poster}">`;
-
-    div.onclick = () => playMovie(movie.src);
-
-    row.appendChild(div);
-  });
-
-  container.appendChild(section);
-});
-
-// ===== 播放 =====
 const modal = document.getElementById("player-modal");
 const video = document.getElementById("video-player");
 const closeBtn = document.getElementById("close-btn");
 
+// 播放
 function playMovie(src) {
   video.src = src;
   modal.classList.remove("hidden");
@@ -85,3 +21,67 @@ closeBtn.onclick = () => {
   modal.classList.add("hidden");
   video.pause();
 };
+
+// 获取电影
+async function loadMovies() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    const movies = data.response.docs;
+
+    // Banner
+    const first = movies[0];
+    banner.style.backgroundImage = `url(https://archive.org/services/img/${first.identifier})`;
+    bannerTitle.innerText = first.title;
+
+    playBanner.onclick = () => {
+      playMovie(`https://archive.org/download/${first.identifier}/${first.identifier}.mp4`);
+    };
+
+    // 分类（简单按年份）
+    const categories = {};
+
+    movies.forEach(m => {
+      const year = m.year || "Other";
+
+      if (!categories[year]) {
+        categories[year] = [];
+      }
+
+      categories[year].push(m);
+    });
+
+    // 渲染
+    Object.keys(categories).slice(0, 5).forEach(cat => {
+      const section = document.createElement("div");
+      section.className = "category";
+
+      section.innerHTML = `<h2>${cat}</h2><div class="movie-row"></div>`;
+      const row = section.querySelector(".movie-row");
+
+      categories[cat].forEach(movie => {
+        const div = document.createElement("div");
+        div.className = "movie";
+
+        const img = `https://archive.org/services/img/${movie.identifier}`;
+
+        div.innerHTML = `<img src="${img}">`;
+
+        div.onclick = () => {
+          playMovie(`https://archive.org/download/${movie.identifier}/${movie.identifier}.mp4`);
+        };
+
+        row.appendChild(div);
+      });
+
+      container.appendChild(section);
+    });
+
+  } catch (err) {
+    console.error("加载失败:", err);
+  }
+}
+
+// 启动
+loadMovies();
