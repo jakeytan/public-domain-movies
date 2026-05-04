@@ -124,7 +124,14 @@ searchBox.style.cssText = `
   font-size: 16px;
 `;
 
-document.body.insertBefore(searchBox, container);
+const searchInput = document.getElementById("search");
+
+searchInput.addEventListener("input", () => {
+  keyword = searchInput.value;
+  page = 1;
+  container.innerHTML = "";
+  loadMovies();
+});
 
 searchBox.addEventListener("input", () => {
   keyword = searchBox.value;
