@@ -64,14 +64,12 @@
         .logo-icon {
             width: 40px;
             height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #e50914 0%, #ff4444 100%);
-            border-radius: 8px;
-            font-size: 24px;
+            display: block;
+            border-radius: 12px;
             box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
             transition: all 0.3s;
+            object-fit: contain;
+            background: transparent;
         }
 
         .logo:hover .logo-icon {
@@ -422,7 +420,7 @@
 
 <nav class="navbar">
     <div class="logo" onclick="window.location.href='index.html'">
-        <div class="logo-icon">🎬</div>
+        <img class="logo-icon" src="logo.svg" alt="鑫艺影像馆 logo">
         <div class="logo-text">
             <div class="logo-brand">鑫艺影像馆</div>
             <div class="logo-tagline">经典电影 · 自由分享</div>
