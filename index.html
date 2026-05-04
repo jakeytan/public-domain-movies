@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Public Domain Movies</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <h1>🎬 MovieHub</h1>
+</header>
+
+<!-- Banner -->
+<section id="banner">
+  <div class="banner-content">
+    <h2 id="banner-title"></h2>
+    <button id="play-banner">▶ Play</button>
+  </div>
+</section>
+
+<!-- 分类 -->
+<main id="categories"></main>
+
+<!-- 播放器 -->
+<div id="player-modal" class="hidden">
+  <div class="player-container">
+    <span id="close-btn">✖</span>
+    <video id="video-player" controls></video>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
