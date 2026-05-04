@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>公版映像馆 · 经典电影自由分享</title>
+    <!-- HLS.js 库 (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
             margin: 0;
@@ -389,6 +391,7 @@
     </div>
 </div>
 
+<script src="player.js"></script>
 <script>
     // ---------- 公有领域电影数据（可直接增加或修改）----------
     const moviesData = [
@@ -573,19 +576,35 @@
     function playMovie(movie) {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('videoPlayer');
-        video.src = movie.videoUrl;
         modal.classList.add('active');
-        video.play();
         document.getElementById('modalMovieTitle').innerHTML = `<strong>${movie.title}</strong> (${movie.year}) · 公有领域免费观影`;
+        
+        // 使用 StreamPlayer 初始化
+        if (!window.indexPlayer) {
+            window.indexPlayer = new StreamPlayer(video, {
+                autoplay: true,
+                hlsConfig: {
+                    maxLoadingDelay: 4,
+                    minAutoBitrate: 0,
+                    maxAutoBitrate: 8000000,
+                    startLevel: -1
+                }
+            });
+        }
+        
+        window.indexPlayer.load(movie.videoUrl, 'hls');
     }
 
     // 关闭模态框
     function closeModal() {
         const modal = document.getElementById('videoModal');
-        const video = document.getElementById('videoPlayer');
         modal.classList.remove('active');
-        video.pause();
-        video.src = '';
+        
+        if (window.indexPlayer) {
+            window.indexPlayer.pause();
+            window.indexPlayer.dispose();
+            window.indexPlayer = null;
+        }
     }
 
     // 初始化

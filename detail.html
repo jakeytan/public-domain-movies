@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>电影详情 - 公版映像馆</title>
+    <!-- HLS.js 库 (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
             margin: 0;
@@ -286,15 +288,176 @@
             overflow: hidden;
             position: relative;
         }
+
+        /* 播放器容器 */
+        .player-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+        }
+
         .video-wrapper {
             aspect-ratio: 16 / 9;
             width: 100%;
+            position: relative;
+            background: #000;
         }
         .video-wrapper video {
             width: 100%;
             height: 100%;
             outline: none;
+            display: block;
         }
+
+        /* 播放器控制条 */
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
+            padding: 20px 15px 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .player-container:hover .player-controls {
+            opacity: 1;
+        }
+
+        /* 进度条 */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #e50914;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .buffer-bar {
+            position: absolute;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            width: 0%;
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .player-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .time-display {
+            color: #aaa;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 60px;
+        }
+
+        /* 设置菜单 */
+        .settings-menu {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(30,30,30,0.95);
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 150px;
+            margin-bottom: 10px;
+            z-index: 20;
+        }
+
+        .settings-menu.active {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item.active {
+            color: #e50914;
+            font-weight: 600;
+        }
+
+        /* 状态指示 */
+        .player-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #aaa;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 5;
+            display: none;
+        }
+
+        .player-status.show {
+            display: block;
+        }
+
+        .status-buffering::before {
+            content: '⟳ ';
+            color: #e50914;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .close-modal {
             position: absolute;
             top: -40px;
@@ -415,12 +578,40 @@
 <div id="videoModal" class="modal">
     <div class="modal-container">
         <button class="close-modal" id="closeModalBtn">✕</button>
-        <div class="video-wrapper">
-            <video id="videoPlayer" controls></video>
+        <div class="player-container" id="playerContainer">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls></video>
+                <div class="player-status" id="playerStatus"></div>
+            </div>
+            <!-- 高级控制条 -->
+            <div class="player-controls" id="playerControls">
+                <div class="progress-bar-container" id="progressContainer">
+                    <div class="buffer-bar" id="bufferBar"></div>
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="controls">
+                    <div class="controls-left">
+                        <button class="player-btn" id="playPauseBtn" title="播放/暂停">▶</button>
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;"></div>
+                    <div class="controls-left">
+                        <button class="player-btn" id="speedBtn" title="播放速度">1x</button>
+                        <button class="player-btn" id="qualityBtn" title="画质">
+                            🎬
+                            <div class="settings-menu" id="qualityMenu"></div>
+                        </button>
+                        <button class="player-btn" id="fullscreenBtn" title="全屏">⛶</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<script src="player.js"></script>
 <script>
     // 电影数据（与主页同步）
     const moviesData = [
@@ -568,16 +759,151 @@
     function playMovie(movie) {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('videoPlayer');
-        video.src = movie.videoUrl;
         modal.classList.add('active');
-        video.play();
+        
+        // 使用 StreamPlayer 初始化播放器
+        if (!window.player) {
+            window.player = new StreamPlayer(video, {
+                autoplay: true,
+                hlsConfig: {
+                    maxLoadingDelay: 4,
+                    minAutoBitrate: 0,
+                    maxAutoBitrate: 8000000,
+                    startLevel: -1  // 自动选择
+                }
+            });
+            
+            setupPlayerControls();
+        }
+        
+        // 加载视频
+        window.player.load(movie.videoUrl, 'hls');
+        
+        // 监听播放器事件
+        window.player.on('buffering', () => {
+            showPlayerStatus('loading', '缓冲中...');
+        });
+        
+        window.player.on('buffered', () => {
+            hidePlayerStatus();
+        });
+        
+        window.player.on('error', (error) => {
+            console.error('播放错误:', error);
+            // 降级到直接 MP4 加载
+            video.src = movie.videoUrl;
+            video.load();
+        });
+        
+        window.player.on('qualitychange', (data) => {
+            console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
+        });
+    }
+
+    // 播放器控制
+    function setupPlayerControls() {
+        const video = document.getElementById('videoPlayer');
+        const player = window.player;
+        
+        // 播放/暂停
+        document.getElementById('playPauseBtn').addEventListener('click', () => {
+            if (video.paused) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        });
+        
+        // 进度条
+        document.getElementById('progressContainer').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            player.seek(percent * video.duration);
+        });
+        
+        // 播放速度
+        document.getElementById('speedBtn').addEventListener('click', () => {
+            const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+            const currentIdx = speeds.indexOf(video.playbackRate);
+            const nextSpeed = speeds[(currentIdx + 1) % speeds.length];
+            player.setPlaybackRate(nextSpeed);
+            document.getElementById('speedBtn').textContent = nextSpeed + 'x';
+        });
+        
+        // 画质切换
+        document.getElementById('qualityBtn').addEventListener('click', (e) => {
+            const menu = document.getElementById('qualityMenu');
+            menu.classList.toggle('active');
+            e.stopPropagation();
+        });
+        
+        // 全屏
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            player.requestFullscreen();
+        });
+        
+        // 更新进度条
+        player.on('progress', (data) => {
+            const percent = data.percent;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('currentTime').textContent = formatTime(data.current);
+            document.getElementById('duration').textContent = formatTime(data.duration);
+            document.getElementById('playPauseBtn').textContent = video.paused ? '▶' : '⏸';
+        });
+        
+        // 更新缓冲进度
+        player.on('bufferprogress', (data) => {
+            document.getElementById('bufferBar').style.width = data.percent + '%';
+        });
+        
+        // 获取并显示画质选项
+        const qualities = player.getQualityLevels();
+        if (qualities.length > 0) {
+            const qualityMenu = document.getElementById('qualityMenu');
+            qualityMenu.innerHTML = qualities.map((q, idx) => `
+                <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
+                    ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
+                </div>
+            `).join('');
+        }
+        
+        // 关闭其他菜单
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'qualityBtn') {
+                document.getElementById('qualityMenu').classList.remove('active');
+            }
+        });
+    }
+
+    function formatTime(seconds) {
+        if (!seconds || isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return mins + ':' + (secs < 10 ? '0' : '') + secs;
+    }
+
+    function showPlayerStatus(type, text) {
+        const status = document.getElementById('playerStatus');
+        status.className = 'player-status show status-' + type;
+        status.textContent = text;
+    }
+
+    function hidePlayerStatus() {
+        const status = document.getElementById('playerStatus');
+        status.classList.remove('show');
     }
 
     function closeModal() {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('videoPlayer');
         modal.classList.remove('active');
-        video.pause();
+        
+        if (window.player) {
+            window.player.pause();
+            window.player.dispose();
+            window.player = null;
+        }
+        
         video.src = '';
     }
 
