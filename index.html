@@ -392,13 +392,90 @@
 <script>
     // ---------- 公有领域电影数据（可直接增加或修改）----------
     const moviesData = [
-        { title: "The Circus", year: 1928, genre: "Comedy", overview: "卓别林大师经典默片，笑中带泪的马戏团故事。", rating: "⭐⭐⭐⭐⭐ 9.2", backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200", poster: "https://via.placeholder.com/300x450?text=The+Circus", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "All Quiet on the Western Front", year: 1930, genre: "Drama", overview: "反战史诗，第一次世界大战惨烈真实写照。", rating: "⭐⭐⭐⭐⭐ 8.9", backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", poster: "https://via.placeholder.com/300x450?text=All+Quiet", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "Metropolis", year: 1927, genre: "Sci-Fi", overview: "德国表现主义科幻巨作，影响后世无数电影。", rating: "⭐⭐⭐⭐⭐ 8.5", backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", poster: "https://via.placeholder.com/300x450?text=Metropolis", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "Nosferatu", year: 1922, genre: "Horror", overview: "影史第一部吸血鬼电影，恐怖氛围至今经典。", rating: "⭐⭐⭐⭐ 8.0", backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", poster: "https://via.placeholder.com/300x450?text=Nosferatu", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "Modern Times", year: 1936, genre: "Comedy", overview: "卓别林对工业时代的辛辣讽刺。", rating: "⭐⭐⭐⭐⭐ 9.0", backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", poster: "https://via.placeholder.com/300x450?text=Modern+Times", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "Frankenstein", year: 1931, genre: "Horror", overview: "科学怪人的银幕始祖，哥特恐怖经典。", rating: "⭐⭐⭐⭐ 7.8", backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", poster: "https://via.placeholder.com/300x450?text=Frankenstein", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-        { title: "The General", year: 1926, genre: "Action", overview: "巴斯特·基顿的火车追逐动作喜剧巅峰。", rating: "⭐⭐⭐⭐⭐ 8.7", backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", poster: "https://via.placeholder.com/300x450?text=The+General", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
+        { 
+            id: 1,
+            title: "The Circus", 
+            year: 1928, 
+            genre: "Comedy", 
+            overview: "卓别林大师经典默片，笑中带泪的马戏团故事。", 
+            director: "查理·卓别林",
+            rating: "⭐⭐⭐⭐⭐ 9.2", 
+            backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=The+Circus", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 2,
+            title: "All Quiet on the Western Front", 
+            year: 1930, 
+            genre: "Drama", 
+            overview: "反战史诗，第一次世界大战惨烈真实写照。", 
+            director: "刘易斯·迈尔斯通",
+            rating: "⭐⭐⭐⭐⭐ 8.9", 
+            backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=All+Quiet", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 3,
+            title: "Metropolis", 
+            year: 1927, 
+            genre: "Sci-Fi", 
+            overview: "德国表现主义科幻巨作，影响后世无数电影。", 
+            director: "弗里茨·朗",
+            rating: "⭐⭐⭐⭐⭐ 8.5", 
+            backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Metropolis", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 4,
+            title: "Nosferatu", 
+            year: 1922, 
+            genre: "Horror", 
+            overview: "影史第一部吸血鬼电影，恐怖氛围至今经典。", 
+            director: "弗里茨·穆瑙",
+            rating: "⭐⭐⭐⭐ 8.0", 
+            backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Nosferatu", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 5,
+            title: "Modern Times", 
+            year: 1936, 
+            genre: "Comedy", 
+            overview: "卓别林对工业时代的辛辣讽刺。", 
+            director: "查理·卓别林",
+            rating: "⭐⭐⭐⭐⭐ 9.0", 
+            backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Modern+Times", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 6,
+            title: "Frankenstein", 
+            year: 1931, 
+            genre: "Horror", 
+            overview: "科学怪人的银幕始祖，哥特恐怖经典。", 
+            director: "詹姆斯·惠尔",
+            rating: "⭐⭐⭐⭐ 7.8", 
+            backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Frankenstein", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 7,
+            title: "The General", 
+            year: 1926, 
+            genre: "Action", 
+            overview: "巴斯特·基顿的火车追逐动作喜剧巅峰。", 
+            director: "巴斯特·基顿、克莱德·布鲁克曼",
+            rating: "⭐⭐⭐⭐⭐ 8.7", 
+            backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=The+General", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        }
     ];
 
     let currentMovies = [...moviesData];
@@ -454,7 +531,7 @@
         let html = '';
         currentMovies.forEach((movie, idx) => {
             html += `
-                <div class="movie-card" data-index="${idx}">
+                <div class="movie-card" data-movie-id="${movie.id}">
                     <div class="poster-wrapper">
                         <img class="poster" src="${movie.poster}" alt="${movie.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x450?text=Classic'">
                     </div>
@@ -466,10 +543,12 @@
             `;
         });
         grid.innerHTML = html;
-        // 绑定卡片点击事件
+        // 绑定卡片点击事件 - 跳转到详情页
         document.querySelectorAll('.movie-card').forEach(card => {
-            const idx = parseInt(card.getAttribute('data-index'));
-            card.addEventListener('click', () => playMovie(currentMovies[idx]));
+            const movieId = parseInt(card.getAttribute('data-movie-id'));
+            card.addEventListener('click', () => {
+                window.location.href = `detail.html?id=${movieId}`;
+            });
         });
     }
 
@@ -485,7 +564,9 @@
         const oldBtn = document.getElementById('heroPlayBtn');
         const newBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-        newBtn.addEventListener('click', () => playMovie(movie));
+        newBtn.addEventListener('click', () => {
+            window.location.href = `detail.html?id=${movie.id}`;
+        });
     }
 
     // 播放电影（模态框）

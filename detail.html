@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影详情 - 公版映像馆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f0f10;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: #fff;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(229, 9, 20, 0.3);
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #e50914 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 详情容器 */
+        .detail-container {
+            margin-top: 70px;
+        }
+
+        /* 头部背景 */
+        .detail-header {
+            position: relative;
+            height: 50vh;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .detail-backdrop {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.4);
+            z-index: 1;
+        }
+
+        .detail-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(15,15,16,0.8) 100%);
+            z-index: 2;
+        }
+
+        .detail-hero-content {
+            position: absolute;
+            bottom: 3rem;
+            left: 5%;
+            right: 5%;
+            z-index: 3;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-end;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .detail-poster {
+            width: 180px;
+            height: 270px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+
+        .detail-title-section {
+            flex: 1;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .detail-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.95rem;
+        }
+
+        .detail-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .detail-meta-label {
+            color: #a3a3a3;
+            font-size: 0.8rem;
+        }
+
+        .detail-meta-value {
+            color: white;
+            font-weight: 600;
+        }
+
+        .detail-rating {
+            background: rgba(229,9,20,0.2);
+            border-left: 3px solid #e50914;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-play-large {
+            background: #e50914;
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-play-large:hover {
+            background: #b20710;
+            transform: scale(1.02);
+        }
+
+        .btn-share {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .btn-share:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* 内容区 */
+        .detail-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 5%;
+        }
+
+        .content-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .overview-text {
+            line-height: 1.8;
+            font-size: 0.95rem;
+            color: #e3e3e3;
+            margin-bottom: 1rem;
+        }
+
+        /* 推荐区 */
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .rec-card {
+            background: #1c1c1f;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .rec-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 15px 25px -10px rgba(229,9,20,0.4);
+        }
+
+        .rec-poster {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+        }
+
+        .rec-info {
+            padding: 0.7rem;
+        }
+
+        .rec-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0.3rem;
+        }
+
+        .rec-year {
+            font-size: 0.7rem;
+            color: #a3a3a3;
+        }
+
+        /* 视频播放器 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.96);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.2s;
+        }
+        .modal-container {
+            width: 90%;
+            max-width: 1000px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        .video-wrapper {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            padding: 0 10px;
+            border-radius: 30px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .detail-hero-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .detail-poster {
+                width: 140px;
+                height: 210px;
+            }
+            .detail-title {
+                font-size: 1.8rem;
+            }
+            .detail-meta {
+                justify-content: center;
+                gap: 1rem;
+            }
+            .detail-actions {
+                justify-content: center;
+            }
+            .recommendations {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo" onclick="goHome()">🎬 鑫艺影像馆</div>
+    <button class="back-btn" onclick="goHome()">← 返回首页</button>
+</nav>
+
+<div class="detail-container">
+    <!-- 头部 -->
+    <div class="detail-header">
+        <img class="detail-backdrop" id="detailBackdrop" src="" alt="backdrop">
+        <div class="detail-overlay"></div>
+        <div class="detail-hero-content">
+            <img class="detail-poster" id="detailPoster" src="" alt="poster">
+            <div class="detail-title-section">
+                <h1 class="detail-title" id="detailTitle">加载中...</h1>
+                <div class="detail-meta">
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">年份</div>
+                        <div class="detail-meta-value" id="detailYear">-</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">类型</div>
+                        <div class="detail-meta-value" id="detailGenre">-</div>
+                    </div>
+                    <div class="detail-meta-item">
+                        <div class="detail-meta-label">导演</div>
+                        <div class="detail-meta-value" id="detailDirector">-</div>
+                    </div>
+                </div>
+                <div class="detail-rating" id="detailRating">⭐⭐⭐⭐⭐ 9.0</div>
+                <div class="detail-actions">
+                    <button class="btn-play-large" id="playBtn">▶ 立即播放</button>
+                    <button class="btn-share">🔗 分享</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容 -->
+    <div class="detail-content">
+        <!-- 剧情简介 -->
+        <div class="content-section">
+            <h2 class="section-title">📖 剧情简介</h2>
+            <p class="overview-text" id="detailOverview"></p>
+        </div>
+
+        <!-- 演员信息 -->
+        <div class="content-section">
+            <h2 class="section-title">🎭 主要演员</h2>
+            <div class="overview-text" id="detailCast"></div>
+        </div>
+
+        <!-- 推荐电影 -->
+        <div class="content-section">
+            <h2 class="section-title">🍿 推荐观看</h2>
+            <div class="recommendations" id="recommendationsGrid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 播放器 -->
+<div id="videoModal" class="modal">
+    <div class="modal-container">
+        <button class="close-modal" id="closeModalBtn">✕</button>
+        <div class="video-wrapper">
+            <video id="videoPlayer" controls></video>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 电影数据（与主页同步）
+    const moviesData = [
+        { 
+            id: 1,
+            title: "The Circus", 
+            year: 1928, 
+            genre: "Comedy", 
+            overview: "这是卓别林继《淘金记》之后又一部伟大杰作。在这部作品中，卓别林扮演一个在马戏团工作的流浪汉，他要与一条恶犬搏斗，与逃脱的狮子纠缠，甚至骑在马背上走钢丝。在与女主人公的互动中，他又展现出了令人捧腹的笑料和深邃的人生哲理。电影中，卓别林用最直白的方式诠释了他在浮躁社会中的孤独与无奈。", 
+            director: "查理·卓别林",
+            cast: "查理·卓别林、门娜·肯尼迪、艾德娜·珀薇安丝",
+            rating: "⭐⭐⭐⭐⭐ 9.2", 
+            backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=The+Circus", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 2,
+            title: "All Quiet on the Western Front", 
+            year: 1930, 
+            genre: "Drama", 
+            overview: "根据埃里希·玛丽亚·雷马克的同名小说改编，影片以第一次世界大战为背景，通过一个普通德国士兵的视角，真实而深刻地反映了战争的残酷性与毁灭性。影片不仅展现了战争中的血腥与死亡，更重要的是揭示了战争对人性的摧残。这部影片开创了战争电影的新纪元，其反战主题在当时引起了巨大的社会反响。", 
+            director: "刘易斯·迈尔斯通",
+            cast: "莱万·艾伦、路易斯·沃尔海姆、约翰·威斯利",
+            rating: "⭐⭐⭐⭐⭐ 8.9", 
+            backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=All+Quiet", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 3,
+            title: "Metropolis", 
+            year: 1927, 
+            genre: "Sci-Fi", 
+            overview: "这部德国表现主义科幻杰作由弗里茨·朗执导，设定在未来的摩天楼城市，通过对现代社会阶级分化的讽刺描绘，探讨了资本主义社会中阶级冲突的问题。影片具有超前的视觉设计和宏大的场景制作，深刻影响了后世科幻电影的发展，被认为是电影史上最重要的作品之一。", 
+            director: "弗里茨·朗",
+            cast: "古斯塔夫·弗勒利希、布里吉特·海姆、阿尔弗雷德·阿贝尔",
+            rating: "⭐⭐⭐⭐⭐ 8.5", 
+            backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Metropolis", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 4,
+            title: "Nosferatu", 
+            year: 1922, 
+            genre: "Horror", 
+            overview: "这是电影史上第一部吸血鬼电影，改编自勃拉姆·斯托克的经典小说《德古拉》。影片运用了表现主义的视觉手法，营造出压抑而诡异的恐怖氛围。虽然这是一部默片，但导演弗里茨·穆瑙通过精妙的镜头语言、灯光设计和美术指导，创造了一个令人毛骨悚然的吸血鬼形象，至今仍被认为是恐怖电影的经典之作。", 
+            director: "弗里茨·穆瑙",
+            cast: "马克斯·施雷克、古斯塔夫·冯·瓦根海姆、格雷塔·施罗德-马坦",
+            rating: "⭐⭐⭐⭐ 8.0", 
+            backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Nosferatu", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 5,
+            title: "Modern Times", 
+            year: 1936, 
+            genre: "Comedy", 
+            overview: "卓别林最后一部默片，也是他对工业时代社会的深刻讽刺。影片讲述了一个工厂工人在现代化生产线中的困境与挣扎，通过幽默夸张的表演手法，揭露了机器时代对人性的压抑。影片将喜剧与社会批评完美融合，既能让观众发笑，又能引发深刻的思考。这部影片标志着默片时代的终结，也是卓别林艺术成就的巅峰之作。", 
+            director: "查理·卓别林",
+            cast: "查理·卓别林、宝琳·戈达德、亨利·伯格曼",
+            rating: "⭐⭐⭐⭐⭐ 9.0", 
+            backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Modern+Times", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 6,
+            title: "Frankenstein", 
+            year: 1931, 
+            genre: "Horror", 
+            overview: "这是根据玛丽·雪莱的同名小说改编的经典恐怖电影，讲述了科学家弗兰肯斯坦利用电力创造出一个怪物的故事。影片以其独特的视觉效果和对人性的探讨，成为了好莱坞恐怖电影的开山之作。鲍里斯·卡洛夫饰演的怪物形象至今仍是电影史上最具标志性的怪物形象之一，代表着对科学伦理和人类欲望的警示。", 
+            director: "詹姆斯·惠尔",
+            cast: "科林·克莱夫、鲍里斯·卡洛夫、梅·克拉克",
+            rating: "⭐⭐⭐⭐ 7.8", 
+            backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=Frankenstein", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        },
+        { 
+            id: 7,
+            title: "The General", 
+            year: 1926, 
+            genre: "Action", 
+            overview: "这是巴斯特·基顿最伟大的杰作之一，讲述了一个火车驾驶员在南北战争期间的冒险故事。影片以其惊人的特技表演、精妙的喜剧设置和宏大的场景制作而著称。基顿在片中展现了他对身体喜剧的完美诠释，每个镜头都精心设计，每个动作都充满了戏剧张力。这部影片不仅是喜剧的杰作，更是动作电影的先驱之作。", 
+            director: "巴斯特·基顿、克莱德·布鲁克曼",
+            cast: "巴斯特·基顿、玛丽昂·梅克、格伦·卡范",
+            rating: "⭐⭐⭐⭐⭐ 8.7", 
+            backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
+            poster: "https://via.placeholder.com/300x450?text=The+General", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+        }
+    ];
+
+    function getGenreLabel(genre) {
+        const map = { Comedy: "喜剧", Drama: "剧情", "Sci-Fi": "科幻", Horror: "恐怖", Action: "动作" };
+        return map[genre] || genre;
+    }
+
+    // 获取当前电影（从URL或localStorage）
+    function getCurrentMovie() {
+        const params = new URLSearchParams(window.location.search);
+        const movieId = parseInt(params.get('id'));
+        const movie = moviesData.find(m => m.id === movieId);
+        return movie || moviesData[0];
+    }
+
+    // 渲染详情页
+    function renderDetail() {
+        const movie = getCurrentMovie();
+        document.getElementById('detailTitle').textContent = movie.title;
+        document.getElementById('detailYear').textContent = movie.year;
+        document.getElementById('detailGenre').textContent = getGenreLabel(movie.genre);
+        document.getElementById('detailDirector').textContent = movie.director;
+        document.getElementById('detailRating').textContent = movie.rating;
+        document.getElementById('detailOverview').textContent = movie.overview;
+        document.getElementById('detailCast').textContent = movie.cast;
+        document.getElementById('detailBackdrop').src = movie.backdrop;
+        document.getElementById('detailPoster').src = movie.poster;
+        document.title = `${movie.title} - 公版映像馆`;
+
+        // 播放按钮
+        document.getElementById('playBtn').addEventListener('click', () => playMovie(movie));
+
+        // 推荐电影（同类型）
+        const recommendations = moviesData.filter(m => m.genre === movie.genre && m.id !== movie.id);
+        renderRecommendations(recommendations);
+    }
+
+    function renderRecommendations(movies) {
+        const grid = document.getElementById('recommendationsGrid');
+        grid.innerHTML = movies.map(movie => `
+            <div class="rec-card" onclick="goToDetail(${movie.id})">
+                <img class="rec-poster" src="${movie.poster}" alt="${movie.title}">
+                <div class="rec-info">
+                    <div class="rec-title">${movie.title}</div>
+                    <div class="rec-year">${movie.year}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function playMovie(movie) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        video.src = movie.videoUrl;
+        modal.classList.add('active');
+        video.play();
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        modal.classList.remove('active');
+        video.pause();
+        video.src = '';
+    }
+
+    function goHome() {
+        window.location.href = 'index.html';
+    }
+
+    function goToDetail(movieId) {
+        window.location.href = `detail.html?id=${movieId}`;
+    }
+
+    // 事件监听
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === document.getElementById('videoModal')) closeModal();
+    });
+
+    // 初始化
+    renderDetail();
+</script>
+
+</body>
+</html>
