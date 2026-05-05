@@ -1,0 +1,47 @@
+{
+  "project": {
+    "name": "鑫艺影像馆",
+    "version": "1.0.0",
+    "description": "公版经典电影自由分享平台"
+  },
+  "files": {
+    "index.html": "主页 - 电影展示和播放",
+    "detail.html": "详情页 - 电影详细信息和播放",
+    "live.html": "直播页 - 实时电影直播",
+    "player.js": "播放器引擎 - HLS流媒体支持",
+    "style.css": "样式文件",
+    "logo.png": "品牌logo",
+    "logo.svg": "备用logo"
+  },
+  "features": {
+    "videoPlayback": {
+      "hls": true,
+      "fallback": true,
+      "adaptiveBitrate": true
+    },
+    "images": {
+      "placeholders": "via.placeholder.com",
+      "encoding": "URL encoded (%20)",
+      "fallback": true
+    },
+    "navigation": {
+      "categories": ["喜剧", "剧情", "科幻", "恐怖", "动作"],
+      "responsive": true
+    }
+  },
+  "dependencies": {
+    "hls.js": "latest (CDN)",
+    "placeholderService": "via.placeholder.com"
+  },
+  "issues": {
+    "resolved": [
+      "Poster URL encoding (+ → %20)",
+      "StreamPlayer auto-detection",
+      "Missing .gitignore"
+    ],
+    "known": [
+      "Network connectivity issues",
+      "Video source availability"
+    ]
+  }
+}

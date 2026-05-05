@@ -145,15 +145,26 @@ class StreamPlayer {
         window.addEventListener('offline', () => this.emit('offline'));
     }
 
+    isHlsUrl(url) {
+        return typeof url === 'string' && /\.m3u8(\?|$)/i.test(url);
+    }
+
     load(url, type = 'hls') {
-        if (type === 'hls' && this.hls) {
+        const useHls = (type === 'hls' || type === 'auto') && this.isHlsUrl(url);
+
+        if (useHls && this.hls) {
             this.hls.loadSource(url);
             this.hls.attachMedia(this.video);
-        } else {
-            // 直接加载标准视频格式
-            this.video.src = url;
-            this.video.load();
+            return;
         }
+
+        if (type === 'hls' && !this.isHlsUrl(url)) {
+            console.warn('StreamPlayer: received non-HLS url with hls mode, falling back to native playback.', url);
+        }
+
+        // 直接加载标准视频格式或原生 HLS
+        this.video.src = url;
+        this.video.load();
     }
 
     play() {

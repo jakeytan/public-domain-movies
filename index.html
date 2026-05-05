@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>公版映像馆 · 经典电影自由分享</title>
+    <title>鑫艺影像馆 · 致敬经典电影</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
@@ -483,8 +483,6 @@
             }
         }
     </style>
-</head>
-<body>
 
 <nav class="navbar">
     <div class="logo" onclick="window.location.href='index.html'">
@@ -567,7 +565,7 @@
             director: "查理·卓别林",
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=The+Circus", 
+            poster: "https://via.placeholder.com/300x450?text=The%20Circus", 
             videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
         },
         { 
@@ -579,7 +577,7 @@
             director: "刘易斯·迈尔斯通",
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=All+Quiet", 
+            poster: "https://via.placeholder.com/300x450?text=All%20Quiet", 
             videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
         },
         { 
@@ -615,7 +613,7 @@
             director: "查理·卓别林",
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=Modern+Times", 
+            poster: "https://via.placeholder.com/300x450?text=Modern%20Times", 
             videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
         },
         { 
@@ -639,7 +637,7 @@
             director: "巴斯特·基顿、克莱德·布鲁克曼",
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=The+General", 
+            poster: "https://via.placeholder.com/300x450?text=The%20General", 
             videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
         }
     ];
@@ -755,7 +753,7 @@
             });
         }
         
-        window.indexPlayer.load(movie.videoUrl, 'hls');
+        window.indexPlayer.load(movie.videoUrl, 'auto');
     }
 
     // 关闭模态框
