@@ -421,12 +421,14 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            height: 100dvh;
             background: rgba(0,0,0,0.96);
             z-index: 1000;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(8px);
+            padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
         }
         .modal.active {
             display: flex;
@@ -435,19 +437,26 @@
         .modal-container {
             width: 90%;
             max-width: 1000px;
+            max-height: calc(100dvh - 2rem);
             background: #000;
             border-radius: 16px;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
         .video-wrapper {
             aspect-ratio: 16 / 9;
             width: 100%;
+            max-height: calc(100dvh - 7rem);
+            background: #000;
         }
         .video-wrapper video {
             width: 100%;
             height: 100%;
+            display: block;
             outline: none;
+            object-fit: contain;
         }
         .close-modal {
             position: absolute;
@@ -558,6 +567,34 @@
             }
             .share-link {
                 margin-left: 0;
+            }
+            .modal {
+                align-items: center;
+                padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+            }
+            .modal-container {
+                width: 100%;
+                max-width: none;
+                max-height: calc(100dvh - 1.5rem);
+                border-radius: 12px;
+            }
+            .video-wrapper {
+                max-height: calc(100dvh - 6.5rem);
+            }
+            .close-modal {
+                top: 0.5rem;
+                right: 0.5rem;
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                display: grid;
+                place-items: center;
+                background: rgba(0,0,0,0.75);
+            }
+            .modal-info {
+                max-height: 4.5rem;
+                overflow: auto;
+                padding-right: 3.5rem;
             }
         }
     </style>
