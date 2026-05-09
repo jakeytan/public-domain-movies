@@ -8,6 +8,8 @@
     <meta property="og:description" content="观看并分享公版经典电影。">
     <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
     <meta property="og:type" content="video.movie">
+    <link rel="icon" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
     <title>电影详情 - 鑫艺影像馆</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -51,6 +53,7 @@
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
+            min-width: 0;
         }
 
         .logo:hover {
@@ -60,6 +63,7 @@
         .logo-icon {
             width: 40px;
             height: 40px;
+            flex: 0 0 40px;
             display: block;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
@@ -77,6 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            min-width: 0;
         }
 
         .logo-brand {
@@ -88,6 +93,7 @@
             color: transparent;
             letter-spacing: -0.5px;
             transition: all 0.3s;
+            white-space: nowrap;
         }
 
         .logo:hover .logo-brand {
@@ -101,6 +107,7 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             transition: color 0.3s;
+            white-space: nowrap;
         }
 
         .logo:hover .logo-tagline {
@@ -601,6 +608,19 @@
         }
 
         @media (max-width: 768px) {
+            .navbar {
+                gap: 0.6rem;
+                padding: 0.75rem 1rem;
+            }
+            .navbar > div:first-child {
+                flex: 1 1 auto;
+            }
+            .nav-link,
+            .back-btn {
+                padding: 0.5rem 0.65rem;
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
             .detail-header {
                 height: 560px;
                 min-height: 560px;
@@ -630,10 +650,12 @@
             }
             .logo {
                 gap: 8px;
+                min-width: 0;
             }
             .logo-icon {
                 width: 36px;
                 height: 36px;
+                flex-basis: 36px;
                 font-size: 20px;
             }
             .logo-brand {
@@ -641,6 +663,7 @@
             }
             .logo-tagline {
                 font-size: 0.6rem;
+                display: none;
             }
         }
     </style>
