@@ -26,6 +26,11 @@
             color: #fff;
         }
 
+        body.modal-open {
+            overflow: hidden;
+            touch-action: none;
+        }
+
         :root {
             --movie-poster-aspect: 941 / 1672;
             --movie-backdrop-aspect: 1448 / 1086;
@@ -570,16 +575,28 @@
             }
             .modal {
                 align-items: center;
-                padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                padding: 0;
             }
             .modal-container {
-                width: 100%;
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
                 max-width: none;
-                max-height: calc(100dvh - 1.5rem);
-                border-radius: 12px;
+                max-height: none;
+                border-radius: 0;
+                overflow: hidden;
             }
             .video-wrapper {
-                max-height: calc(100dvh - 6.5rem);
+                flex: 1 1 auto;
+                min-height: 0;
+                aspect-ratio: auto;
+                max-height: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .close-modal {
                 top: 0.5rem;
@@ -592,9 +609,11 @@
                 background: rgba(0,0,0,0.75);
             }
             .modal-info {
+                flex: 0 0 auto;
                 max-height: 4.5rem;
                 overflow: auto;
                 padding-right: 3.5rem;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom));
             }
         }
     </style>
@@ -889,6 +908,7 @@
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('videoPlayer');
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
         document.getElementById('modalMovieTitle').innerHTML = `<strong>${movie.title}</strong> (${movie.year}) · 公有领域免费观影`;
         
         // 使用 StreamPlayer 初始化
@@ -911,6 +931,7 @@
     function closeModal() {
         const modal = document.getElementById('videoModal');
         modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
         
         if (window.indexPlayer) {
             window.indexPlayer.pause();
