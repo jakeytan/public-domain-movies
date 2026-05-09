@@ -165,6 +165,11 @@ class StreamPlayer {
         // 直接加载标准视频格式或原生 HLS
         this.video.src = url;
         this.video.load();
+        if (this.options.autoplay) {
+            this.video.play().catch((error) => {
+                console.warn('StreamPlayer: autoplay was blocked or delayed.', error);
+            });
+        }
     }
 
     play() {
