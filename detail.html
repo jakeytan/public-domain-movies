@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="鑫艺影像馆，公版经典电影自由分享平台。">
+    <meta property="og:title" content="电影详情 - 鑫艺影像馆">
+    <meta property="og:description" content="观看并分享公版经典电影。">
+    <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
+    <meta property="og:type" content="video.movie">
     <title>电影详情 - 鑫艺影像馆</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -17,6 +22,11 @@
             background-color: #0f0f10;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             color: #fff;
+        }
+
+        :root {
+            --movie-poster-aspect: 941 / 1672;
+            --movie-backdrop-aspect: 1448 / 1086;
         }
 
         /* 导航栏 */
@@ -137,17 +147,22 @@
         /* 头部背景 */
         .detail-header {
             position: relative;
-            height: 50vh;
-            min-height: 400px;
+            aspect-ratio: var(--movie-backdrop-aspect);
+            height: auto;
+            max-height: 820px;
+            min-height: 420px;
             overflow: hidden;
+            background:
+                radial-gradient(circle at 75% 20%, rgba(229,9,20,0.16), transparent 34%),
+                #0f0f10;
         }
 
         .detail-backdrop {
             position: absolute;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            filter: brightness(0.4);
+            object-fit: contain;
+            filter: brightness(0.52);
             z-index: 1;
         }
 
@@ -176,9 +191,10 @@
 
         .detail-poster {
             width: 180px;
-            height: 270px;
+            aspect-ratio: var(--movie-poster-aspect);
             border-radius: 12px;
-            object-fit: cover;
+            object-fit: contain;
+            background: #111;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
 
@@ -263,6 +279,31 @@
             background: rgba(255,255,255,0.2);
         }
 
+        .share-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 2rem;
+            transform: translateX(-50%) translateY(20px);
+            max-width: min(90vw, 460px);
+            background: rgba(24,24,28,0.96);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 2000;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        .share-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* 内容区 */
         .detail-content {
             max-width: 1200px;
@@ -311,8 +352,9 @@
 
         .rec-poster {
             width: 100%;
-            aspect-ratio: 2 / 3;
-            object-fit: cover;
+            aspect-ratio: var(--movie-poster-aspect);
+            object-fit: contain;
+            background: #111;
         }
 
         .rec-info {
@@ -559,6 +601,12 @@
         }
 
         @media (max-width: 768px) {
+            .detail-header {
+                height: 560px;
+                min-height: 560px;
+                max-height: none;
+                aspect-ratio: var(--movie-backdrop-aspect);
+            }
             .detail-hero-content {
                 flex-direction: column;
                 align-items: center;
@@ -566,7 +614,6 @@
             }
             .detail-poster {
                 width: 140px;
-                height: 210px;
             }
             .detail-title {
                 font-size: 1.8rem;
@@ -638,11 +685,13 @@
                 <div class="detail-rating" id="detailRating">⭐⭐⭐⭐⭐ 9.0</div>
                 <div class="detail-actions">
                     <button class="btn-play-large" id="playBtn">▶ 立即播放</button>
-                    <button class="btn-share">🔗 分享</button>
+                    <button class="btn-share" id="shareMovieBtn" type="button">分享到朋友圈</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
 
     <!-- 内容 -->
     <div class="detail-content">
@@ -813,6 +862,54 @@
         return movie || moviesData[0];
     }
 
+    function showShareToast(message) {
+        const toast = document.getElementById('shareToast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        window.clearTimeout(window.shareToastTimer);
+        window.shareToastTimer = window.setTimeout(() => toast.classList.remove('show'), 4200);
+    }
+
+    async function shareMovie(movie) {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?id=${movie.id}`;
+        const shareData = {
+            title: `${movie.title} - 鑫艺影像馆`,
+            text: `来鑫艺影像馆观看公版经典电影：${movie.title}`,
+            url: shareUrl
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(shareData.url);
+            showShareToast('链接已复制。打开微信朋友圈，粘贴链接即可分享。若在微信内浏览，也可以点右上角菜单分享到朋友圈。');
+        } catch (error) {
+            showShareToast('请复制当前页面地址，在微信朋友圈发布；若在微信内浏览，可点右上角菜单分享到朋友圈。');
+        }
+    }
+
+    function setShareMeta(movie) {
+        const meta = {
+            'description': movie.overview,
+            'og:title': `${movie.title} - 鑫艺影像馆`,
+            'og:description': movie.overview,
+            'og:image': movie.backdrop
+        };
+
+        Object.entries(meta).forEach(([key, value]) => {
+            const selector = key.startsWith('og:') ? `meta[property="${key}"]` : `meta[name="${key}"]`;
+            const tag = document.querySelector(selector);
+            if (tag) tag.setAttribute('content', value);
+        });
+    }
+
     // 渲染详情页
     function renderDetail() {
         const movie = getCurrentMovie();
@@ -826,9 +923,11 @@
         document.getElementById('detailBackdrop').src = movie.backdrop;
         document.getElementById('detailPoster').src = movie.poster;
         document.title = `${movie.title} - 公版映像馆`;
+        setShareMeta(movie);
 
         // 播放按钮
         document.getElementById('playBtn').addEventListener('click', () => playMovie(movie));
+        document.getElementById('shareMovieBtn').addEventListener('click', () => shareMovie(movie));
 
         // 推荐电影（同类型）
         const recommendations = moviesData.filter(m => m.genre === movie.genre && m.id !== movie.id);

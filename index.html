@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="鑫艺影像馆，公版经典电影自由分享平台。">
+    <meta property="og:title" content="鑫艺影像馆 · 致敬经典电影">
+    <meta property="og:description" content="观看并分享公版经典电影。">
+    <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
+    <meta property="og:type" content="website">
     <title>鑫艺影像馆 · 致敬经典电影</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -17,6 +22,11 @@
             background-color: #0f0f10;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             color: #fff;
+        }
+
+        :root {
+            --movie-poster-aspect: 941 / 1672;
+            --movie-backdrop-aspect: 1448 / 1086;
         }
 
         /* 自定义滚动条 */
@@ -128,6 +138,36 @@
             transform: translateY(-1px);
         }
 
+        .share-link {
+            cursor: pointer;
+            margin-left: 0.75rem;
+        }
+
+        .share-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 2rem;
+            transform: translateX(-50%) translateY(20px);
+            max-width: min(90vw, 460px);
+            background: rgba(24,24,28,0.96);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 2000;
+            line-height: 1.5;
+            font-size: 0.92rem;
+        }
+
+        .share-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .live-entry {
             max-width: 1400px;
             margin: 0 auto;
@@ -182,10 +222,14 @@
         /* Hero 大屏区域 */
         .hero {
             position: relative;
-            height: 85vh;
-            min-height: 500px;
+            aspect-ratio: var(--movie-backdrop-aspect);
+            height: auto;
+            max-height: 900px;
+            min-height: 420px;
             width: 100%;
-            background: linear-gradient(0deg, #0f0f10 0%, rgba(15,15,16,0.8) 100%);
+            background:
+                radial-gradient(circle at 70% 20%, rgba(229,9,20,0.18), transparent 32%),
+                linear-gradient(0deg, #0f0f10 0%, rgba(15,15,16,0.92) 100%);
             overflow: hidden;
             margin-top: 0;
         }
@@ -196,9 +240,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             z-index: 0;
-            filter: brightness(0.5) blur(2px);
+            filter: brightness(0.58);
             transition: transform 0.3s ease;
         }
 
@@ -333,13 +377,14 @@
         }
 
         .poster-wrapper {
-            aspect-ratio: 2 / 3;
+            aspect-ratio: var(--movie-poster-aspect);
             overflow: hidden;
+            background: #111;
         }
         .poster {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.4s;
         }
         .movie-card:hover .poster {
@@ -446,6 +491,12 @@
         }
 
         @media (max-width: 768px) {
+            .hero {
+                height: auto;
+                min-height: 0;
+                max-height: none;
+                aspect-ratio: var(--movie-backdrop-aspect);
+            }
             .hero-title {
                 font-size: 1.8rem;
             }
@@ -494,8 +545,11 @@
     </div>
     <div>
         <a class="nav-link" href="live.html">直播入口</a>
+        <button class="nav-link share-link" id="shareSiteBtn" type="button">分享到朋友圈</button>
     </div>
 </nav>
+
+<div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
 
 <section class="hero" id="heroSection">
     <img class="hero-backdrop" id="heroBackdrop" src="" alt="backdrop">
@@ -564,8 +618,8 @@
             overview: "卓别林大师经典默片，笑中带泪的马戏团故事。", 
             director: "查理·卓别林",
             rating: "⭐⭐⭐⭐⭐ 9.2", 
-            backdrop: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200", 
-            poster: "https://placehold.co/300x450?text=The+Circus&bg=111111&fg=ffffff", 
+            backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
+            poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
             videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/马戏团.mp4" 
         },
         { 
@@ -733,6 +787,39 @@
         });
     }
 
+    function showShareToast(message) {
+        const toast = document.getElementById('shareToast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        window.clearTimeout(window.shareToastTimer);
+        window.shareToastTimer = window.setTimeout(() => toast.classList.remove('show'), 4200);
+    }
+
+    async function shareSite() {
+        const movie = currentHeroMovie || moviesData[0];
+        const shareData = {
+            title: '鑫艺影像馆',
+            text: `来鑫艺影像馆观看公版经典电影：${movie.title}`,
+            url: window.location.href
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(shareData.url);
+            showShareToast('链接已复制。打开微信朋友圈，粘贴链接即可分享。若在微信内浏览，也可以点右上角菜单分享到朋友圈。');
+        } catch (error) {
+            showShareToast('请复制当前页面地址，在微信朋友圈发布；若在微信内浏览，可点右上角菜单分享到朋友圈。');
+        }
+    }
+
     // 播放电影（模态框）
     function playMovie(movie) {
         const modal = document.getElementById('videoModal');
@@ -779,6 +866,7 @@
         window.addEventListener('click', (e) => {
             if (e.target === document.getElementById('videoModal')) closeModal();
         });
+        document.getElementById('shareSiteBtn').addEventListener('click', shareSite);
     }
 
     init();
