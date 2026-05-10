@@ -2,7 +2,7 @@
   "project": {
     "name": "鑫艺影像馆",
     "version": "1.0.0",
-    "description": "公版经典电影自由分享平台"
+    "description": "经典电影自由分享平台"
   },
   "files": {
     "index.html": "主页 - 电影展示和播放",

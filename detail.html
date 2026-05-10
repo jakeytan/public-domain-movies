@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="鑫艺影像馆，公版经典电影自由分享平台。">
+    <meta name="description" content="鑫艺影像馆，经典电影自由分享平台。">
     <meta property="og:title" content="电影详情 - 鑫艺影像馆">
-    <meta property="og:description" content="观看并分享公版经典电影。">
+    <meta property="og:description" content="观看并分享经典电影。">
     <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
     <meta property="og:type" content="video.movie">
     <link rel="icon" href="logo.png">
@@ -865,7 +865,8 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/马戏团.mp4" 
+            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/%E9%A9%AC%E6%88%8F%E5%9B%A2.mp4",
+            fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
         },
         { 
             id: 2,
@@ -878,7 +879,7 @@
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=All%20Quiet", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
         },
         { 
             id: 3,
@@ -891,7 +892,7 @@
             rating: "⭐⭐⭐⭐⭐ 8.5", 
             backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=Metropolis", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
         },
         { 
             id: 4,
@@ -904,7 +905,7 @@
             rating: "⭐⭐⭐⭐ 8.0", 
             backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=Nosferatu", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
         },
         { 
             id: 5,
@@ -917,7 +918,7 @@
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=Modern%20Times", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
         },
         { 
             id: 6,
@@ -930,7 +931,7 @@
             rating: "⭐⭐⭐⭐ 7.8", 
             backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=Frankenstein", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
         },
         { 
             id: 7,
@@ -943,7 +944,7 @@
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
             poster: "https://via.placeholder.com/300x450?text=The%20General", 
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" 
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
         }
     ];
 
@@ -972,7 +973,7 @@
         const shareUrl = `${window.location.origin}${window.location.pathname}?id=${movie.id}`;
         const shareData = {
             title: `${movie.title} - 鑫艺影像馆`,
-            text: `来鑫艺影像馆观看公版经典电影：${movie.title}`,
+            text: `来鑫艺影像馆观看经典电影：${movie.title}`,
             url: shareUrl
         };
 
@@ -1020,7 +1021,7 @@
         document.getElementById('detailCast').textContent = movie.cast;
         document.getElementById('detailBackdrop').src = movie.backdrop;
         document.getElementById('detailPoster').src = movie.poster;
-        document.title = `${movie.title} - 公版映像馆`;
+        document.title = `${movie.title} - 鑫艺影像馆`;
         setShareMeta(movie);
 
         // 播放按钮
@@ -1067,7 +1068,7 @@
         }
         
         // 加载视频
-        window.player.load(movie.videoUrl, 'auto');
+        window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
         
         // 监听播放器事件
         window.player.on('buffering', () => {

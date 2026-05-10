@@ -29,6 +29,9 @@ class StreamPlayer {
         };
         this.isBuffering = false;
         this.listeners = {};
+        this.currentUrl = '';
+        this.fallbackUrl = '';
+        this.hasTriedFallback = false;
         
         this.init();
     }
@@ -134,6 +137,18 @@ class StreamPlayer {
         // 错误处理
         this.video.addEventListener('error', (e) => {
             const error = this.video.error;
+            if (this.fallbackUrl && !this.hasTriedFallback && this.video.currentSrc !== this.fallbackUrl) {
+                this.hasTriedFallback = true;
+                console.warn('StreamPlayer: primary source failed, trying fallback.', this.fallbackUrl);
+                this.video.src = this.fallbackUrl;
+                this.video.load();
+                if (this.options.autoplay) {
+                    this.video.play().catch((playError) => {
+                        console.warn('StreamPlayer: fallback autoplay was blocked or delayed.', playError);
+                    });
+                }
+                return;
+            }
             this.emit('error', {
                 code: error?.code,
                 message: error?.message
@@ -149,10 +164,15 @@ class StreamPlayer {
         return typeof url === 'string' && /\.m3u8(\?|$)/i.test(url);
     }
 
-    load(url, type = 'hls') {
+    load(url, type = 'hls', fallbackUrl = '') {
+        this.currentUrl = url;
+        this.fallbackUrl = fallbackUrl;
+        this.hasTriedFallback = false;
         const useHls = (type === 'hls' || type === 'auto') && this.isHlsUrl(url);
 
         if (useHls && this.hls) {
+            this.video.removeAttribute('src');
+            this.video.load();
             this.hls.loadSource(url);
             this.hls.attachMedia(this.video);
             return;
