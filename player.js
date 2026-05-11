@@ -88,7 +88,7 @@ class StreamPlayer {
         });
 
         // 自动选择最佳码率
-        this.hls.abrController.setAutoLevelCapping(-1);
+        // this.hls.abrController.setAutoLevelCapping(-1);
     }
 
     setupNativeHLS() {

@@ -14,48 +14,7 @@
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
-<body style="margin:0; background:#0f0f10; color:#fff; font-family:system-ui; display:flex; justify-content:center; align-items:center; min-height:100vh;">
-    <div style="width:100%; max-width:1200px; margin:2rem auto; padding:0 1rem;">
-        <a href="index.html" style="display:inline-block; margin-bottom:1.5rem; color:#e50914; text-decoration:none;">← 返回首页</a>
-        <div style="background:#000; border-radius:24px; overflow:hidden;">
-            <video id="detailVideo" controls playsinline webkit-playsinline style="width:100%; aspect-ratio:16/9; display:block;"></video>
-        </div>
-        <div id="movieInfo" style="margin-top:1.5rem;">
-            <h1 id="movieTitle" style="font-size:1.8rem;">加载中...</h1>
-            <div id="movieMeta" style="color:#aaa; margin:0.5rem 0;"></div>
-            <p id="movieOverview" style="line-height:1.5;"></p>
-        </div>
-    </div>
-
-    <!-- 引入播放器和电影数据 -->
-    <script src="player.js"></script>
-    <script>
-        // 电影数据（与 index.html 保持一致，也可以从外部 data.js 导入）
-        const moviesData = [
-            { id:1, title:"The Circus", year:1928, genre:"Comedy", overview:"卓别林大师经典默片…", videoUrl:"https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/%E9%A9%AC%E6%88%8F%E5%9B%A2.mp4", fallbackVideoUrl:"https://media.w3.org/2010/05/sintel/trailer.mp4" },
-            { id:2, title:"All Quiet on the Western Front", year:1930, genre:"Drama", overview:"反战史诗…", videoUrl:"https://media.w3.org/2010/05/sintel/trailer.mp4", fallbackVideoUrl:"" }
-            // 补充其他电影...
-        ];
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const movieId = parseInt(urlParams.get('id'));
-        const movie = moviesData.find(m => m.id === movieId);
-
-        if (movie) {
-            document.title = `${movie.title} - 鑫艺影像馆`;
-            document.getElementById('movieTitle').innerText = movie.title;
-            document.getElementById('movieMeta').innerHTML = `${movie.year} · ${movie.genre}`;
-            document.getElementById('movieOverview').innerText = movie.overview;
-
-            const videoEl = document.getElementById('detailVideo');
-            const player = new StreamPlayer(videoEl, { autoplay: false });
-            player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
-            // 可选：监听错误
-            player.on('error', (err) => console.warn('播放出错', err));
-        } else {
-            document.getElementById('movieInfo').innerHTML = '<h1>未找到该电影</h1><p>请返回首页重新选择。</p>';
-        }
-    </script>
+<body>
     <style>
         * {
             margin: 0;
@@ -908,7 +867,7 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/%E9%A9%AC%E6%88%8F%E5%9B%A2.mp4",
+            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
             fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
         },
         { 
@@ -1077,21 +1036,24 @@
     }
 
     function renderRecommendations(movies) {
-        const grid = document.getElementById('recommendationsGrid');
-        if (!movies.length) {
-            grid.innerHTML = '<p style="color:#a3a3a3;font-size:0.95rem;">暂无同类型推荐电影，敬请期待更多经典上架。</p>';
-            return;
-        }
-        grid.innerHTML = movies.map(movie => `
-            <div class="rec-card" onclick="goToDetail(${movie.id})">
-                <img class="rec-poster" src="${movie.poster}" alt="${movie.title}" onerror="this.src='https://placehold.co/300x450?text=Classic&bg=111111&fg=ffffff'">
-                <div class="rec-info">
-                    <div class="rec-title">${movie.title}</div>
-                    <div class="rec-year">${movie.year}</div>
-                </div>
-            </div>
-        `).join('');
+    const grid = document.getElementById('recommendationsGrid');
+    if (!movies.length) {
+        grid.innerHTML = '<p style="color:#a3a3a3;font-size:0.95rem;">暂无同类型推荐电影</p>';
+        return;
     }
+    grid.innerHTML = movies.map(movie => `
+        <div class="rec-card" onclick="goToDetail(${movie.id})">
+            <img class="rec-poster" src="${movie.poster}" alt="${movie.title}">
+            <div class="rec-info">
+                <div class="rec-title">${movie.title}</div>
+                <div class="rec-year">${movie.year}</div>
+            </div>
+        </div>
+    `).join('');
+}
+    function playMovie(movie) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
         modal.classList.add('active');
         document.body.classList.add('modal-open');
         
