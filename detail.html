@@ -819,7 +819,7 @@
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="player-container" id="playerContainer">
             <div class="video-wrapper">
-                <video id="videoPlayer" controls playsinline webkit-playsinline preload="metadata"></video>
+                <video id="videoPlayer" controls playsinline webkit-playsinline preload="auto"></video>
                 <div class="player-status" id="playerStatus"></div>
             </div>
             <!-- 高级控制条 -->
@@ -1065,30 +1065,48 @@
             });
             
             setupPlayerControls();
+            
+            // 监听播放器事件
+            window.player.on('buffering', () => {
+                showPlayerStatus('loading', '缓冲中...');
+            });
+            
+            window.player.on('buffered', () => {
+                hidePlayerStatus();
+            });
+            
+            window.player.on('error', (error) => {
+                console.error('播放错误:', error);
+                showPlayerStatus('error', '播放失败，点击重试');
+                // 添加重试功能
+                document.getElementById('playerStatus').style.cursor = 'pointer';
+                document.getElementById('playerStatus').onclick = () => {
+                    if (window.player) {
+                        window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+                    }
+                };
+            });
+            
+            window.player.on('qualitychange', (data) => {
+                console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
+            });
         }
         
         // 加载视频
         window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
         
-        // 监听播放器事件
-        window.player.on('buffering', () => {
-            showPlayerStatus('loading', '缓冲中...');
-        });
-        
-        window.player.on('buffered', () => {
-            hidePlayerStatus();
-        });
-        
-        window.player.on('error', (error) => {
-            console.error('播放错误:', error);
-            // 降级到直接 MP4 加载
-            video.src = movie.videoUrl;
-            video.load();
-        });
-        
-        window.player.on('qualitychange', (data) => {
-            console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
-        });
+        // 更新画质选项
+        setTimeout(() => {
+            const qualities = window.player.getQualityLevels();
+            if (qualities.length > 0) {
+                const qualityMenu = document.getElementById('qualityMenu');
+                qualityMenu.innerHTML = qualities.map((q, idx) => `
+                    <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
+                        ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
+                    </div>
+                `).join('');
+            }
+        }, 500);
     }
 
     // 播放器控制

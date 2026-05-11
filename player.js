@@ -108,8 +108,8 @@ class StreamPlayer {
     }
 
     setupEventListeners() {
-        // 播放进度
-        this.video.addEventListener('timeupdate', () => {
+        // Bind handler methods so they can be removed later
+        this._onTimeUpdate = () => {
             const duration = this.video.duration;
             const currentTime = this.video.currentTime;
             const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -118,24 +118,21 @@ class StreamPlayer {
                 duration: duration, 
                 percent: progress 
             });
-        });
+        };
 
-        // 缓冲进度
-        this.video.addEventListener('progress', () => {
+        this._onProgress = () => {
             const buffered = this.getBufferedPercent();
             this.stats.buffered = buffered;
             this.emit('bufferprogress', { percent: buffered });
-        });
+        };
 
-        // 播放状态
-        this.video.addEventListener('play', () => this.emit('play'));
-        this.video.addEventListener('pause', () => this.emit('pause'));
-        this.video.addEventListener('ended', () => this.emit('ended'));
-        this.video.addEventListener('loadstart', () => this.emit('loading'));
-        this.video.addEventListener('canplay', () => this.emit('canplay'));
-        
-        // 错误处理
-        this.video.addEventListener('error', (e) => {
+        this._onPlay = () => this.emit('play');
+        this._onPause = () => this.emit('pause');
+        this._onEnded = () => this.emit('ended');
+        this._onLoadStart = () => this.emit('loading');
+        this._onCanPlay = () => this.emit('canplay');
+
+        this._onError = (e) => {
             const error = this.video.error;
             if (this.fallbackUrl && !this.hasTriedFallback && this.video.currentSrc !== this.fallbackUrl) {
                 this.hasTriedFallback = true;
@@ -153,11 +150,22 @@ class StreamPlayer {
                 code: error?.code,
                 message: error?.message
             });
-        });
+        };
 
-        // 网络状态监听
-        window.addEventListener('online', () => this.emit('online'));
-        window.addEventListener('offline', () => this.emit('offline'));
+        this._onOnline = () => this.emit('online');
+        this._onOffline = () => this.emit('offline');
+
+        // Attach all event listeners
+        this.video.addEventListener('timeupdate', this._onTimeUpdate);
+        this.video.addEventListener('progress', this._onProgress);
+        this.video.addEventListener('play', this._onPlay);
+        this.video.addEventListener('pause', this._onPause);
+        this.video.addEventListener('ended', this._onEnded);
+        this.video.addEventListener('loadstart', this._onLoadStart);
+        this.video.addEventListener('canplay', this._onCanPlay);
+        this.video.addEventListener('error', this._onError);
+        window.addEventListener('online', this._onOnline);
+        window.addEventListener('offline', this._onOffline);
     }
 
     isHlsUrl(url) {
@@ -168,11 +176,15 @@ class StreamPlayer {
         this.currentUrl = url;
         this.fallbackUrl = fallbackUrl;
         this.hasTriedFallback = false;
+        
+        // Reset video element state before loading new source
+        this.video.pause();
+        this.video.removeAttribute('src');
+        this.video.load();
+        
         const useHls = (type === 'hls' || type === 'auto') && this.isHlsUrl(url);
 
         if (useHls && this.hls) {
-            this.video.removeAttribute('src');
-            this.video.load();
             this.hls.loadSource(url);
             this.hls.attachMedia(this.video);
             return;
@@ -254,9 +266,29 @@ class StreamPlayer {
     }
 
     dispose() {
+        // Remove all event listeners from video element
+        this.video.removeEventListener('timeupdate', this._onTimeUpdate);
+        this.video.removeEventListener('progress', this._onProgress);
+        this.video.removeEventListener('play', this._onPlay);
+        this.video.removeEventListener('pause', this._onPause);
+        this.video.removeEventListener('ended', this._onEnded);
+        this.video.removeEventListener('loadstart', this._onLoadStart);
+        this.video.removeEventListener('canplay', this._onCanPlay);
+        this.video.removeEventListener('error', this._onError);
+        
+        // Remove window event listeners
+        window.removeEventListener('online', this._onOnline);
+        window.removeEventListener('offline', this._onOffline);
+        
         if (this.hls) {
             this.hls.destroy();
+            this.hls = null;
         }
+        
+        // Clear video source
+        this.video.src = '';
+        this.video.load();
+        
         this.listeners = {};
     }
 
