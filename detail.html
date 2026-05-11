@@ -13,6 +13,8 @@
     <title>电影详情 - 鑫艺影像馆</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
     <style>
         * {
             margin: 0;
@@ -878,7 +880,7 @@
             cast: "莱万·艾伦、路易斯·沃尔海姆、约翰·威斯利",
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=All%20Quiet", 
+            poster: "https://placehold.co/300x450?text=All+Quiet&bg=111111&fg=ffffff", 
             videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
         },
         { 
@@ -891,7 +893,7 @@
             cast: "古斯塔夫·弗勒利希、布里吉特·海姆、阿尔弗雷德·阿贝尔",
             rating: "⭐⭐⭐⭐⭐ 8.5", 
             backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=Metropolis", 
+            poster: "https://placehold.co/300x450?text=Metropolis&bg=111111&fg=ffffff", 
             videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
         },
         { 
@@ -904,7 +906,7 @@
             cast: "马克斯·施雷克、古斯塔夫·冯·瓦根海姆、格雷塔·施罗德-马坦",
             rating: "⭐⭐⭐⭐ 8.0", 
             backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=Nosferatu", 
+            poster: "https://placehold.co/300x450?text=Nosferatu&bg=111111&fg=ffffff", 
             videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
         },
         { 
@@ -917,7 +919,7 @@
             cast: "查理·卓别林、宝琳·戈达德、亨利·伯格曼",
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=Modern%20Times", 
+            poster: "https://placehold.co/300x450?text=Modern+Times&bg=111111&fg=ffffff", 
             videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
         },
         { 
@@ -930,7 +932,7 @@
             cast: "科林·克莱夫、鲍里斯·卡洛夫、梅·克拉克",
             rating: "⭐⭐⭐⭐ 7.8", 
             backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=Frankenstein", 
+            poster: "https://placehold.co/300x450?text=Frankenstein&bg=111111&fg=ffffff", 
             videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
         },
         { 
@@ -943,7 +945,7 @@
             cast: "巴斯特·基顿、玛丽昂·梅克、格伦·卡范",
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
-            poster: "https://via.placeholder.com/300x450?text=The%20General", 
+            poster: "https://placehold.co/300x450?text=The+General&bg=111111&fg=ffffff", 
             videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
         }
     ];
@@ -1035,9 +1037,13 @@
 
     function renderRecommendations(movies) {
         const grid = document.getElementById('recommendationsGrid');
+        if (!movies.length) {
+            grid.innerHTML = '<p style="color:#a3a3a3;font-size:0.95rem;">暂无同类型推荐电影，敬请期待更多经典上架。</p>';
+            return;
+        }
         grid.innerHTML = movies.map(movie => `
             <div class="rec-card" onclick="goToDetail(${movie.id})">
-                <img class="rec-poster" src="${movie.poster}" alt="${movie.title}">
+                <img class="rec-poster" src="${movie.poster}" alt="${movie.title}" onerror="this.src='https://placehold.co/300x450?text=Classic&bg=111111&fg=ffffff'">
                 <div class="rec-info">
                     <div class="rec-title">${movie.title}</div>
                     <div class="rec-year">${movie.year}</div>
