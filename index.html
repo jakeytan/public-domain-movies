@@ -193,6 +193,7 @@
                 linear-gradient(0deg, #0f0f10 0%, rgba(15,15,16,0.92) 100%);
             overflow: hidden;
             margin-top: 0;
+            cursor: pointer;
         }
 
         .hero-backdrop {
@@ -204,7 +205,18 @@
             object-fit: contain;
             z-index: 0;
             filter: brightness(0.58);
-            transition: transform 0.3s ease;
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(15,15,16,0.9) 0%, rgba(15,15,16,0.48) 38%, rgba(15,15,16,0.12) 72%),
+                linear-gradient(0deg, #0f0f10 0%, rgba(15,15,16,0) 42%);
+            z-index: 1;
+            pointer-events: none;
         }
 
         .hero-content {
@@ -214,6 +226,46 @@
             max-width: 600px;
             z-index: 2;
             animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-poster-rail {
+            position: absolute;
+            right: 5%;
+            bottom: 8%;
+            z-index: 3;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.8rem;
+            max-width: min(48vw, 620px);
+            overflow: hidden;
+        }
+
+        .hero-poster-card {
+            width: clamp(78px, 8vw, 126px);
+            aspect-ratio: var(--movie-poster-aspect);
+            border: 2px solid rgba(255,255,255,0.16);
+            border-radius: 14px;
+            padding: 0;
+            overflow: hidden;
+            background: #111;
+            cursor: pointer;
+            opacity: 0.62;
+            transform: scale(0.92);
+            transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .hero-poster-card.active {
+            opacity: 1;
+            transform: scale(1);
+            border-color: #fff;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+        }
+
+        .hero-poster-card img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
         }
 
         .hero-title {
@@ -613,6 +665,16 @@
                 left: 5%;
                 right: 5%;
             }
+            .hero-poster-rail {
+                right: 5%;
+                bottom: 4%;
+                max-width: 52vw;
+                gap: 0.45rem;
+            }
+            .hero-poster-card {
+                width: 48px;
+                border-radius: 8px;
+            }
             .movies-grid {
                 gap: 1rem;
                 padding-inline: 2.75rem;
@@ -738,9 +800,10 @@
         <h1 class="hero-title" id="heroTitle">加载中...</h1>
         <p class="hero-overview" id="heroOverview"></p>
         <div class="hero-meta">
-            <button class="btn-play" id="heroPlayBtn">▶ 立即播放</button>
+            <button class="btn-play" id="heroPlayBtn">▶ 进入点播</button>
         </div>
     </div>
+    <div class="hero-poster-rail" id="heroPosterRail" aria-label="影片推介"></div>
 </section>
 
 <main class="container">
@@ -820,7 +883,7 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/%E9%A9%AC%E6%88%8F%E5%9B%A2.mp4",
+            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
             fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
         },
         { 
@@ -899,12 +962,16 @@
 
     let currentMovies = [...moviesData];
     let currentHeroMovie = currentMovies[0];
+    let currentHeroIndex = 0;
+    let heroRotationTimer = null;
     let currentVideoPlayer = null;
     let currentModalMovie = null;
     let modalControlsTimer = null;
     const movieRail = document.getElementById('moviesGrid');
     const movieScrollLeft = document.getElementById('moviesScrollLeft');
     const movieScrollRight = document.getElementById('moviesScrollRight');
+    const heroSection = document.getElementById('heroSection');
+    const heroPosterRail = document.getElementById('heroPosterRail');
     const modalPlayBtn = document.getElementById('modalPlayBtn');
     const modalPauseBtn = document.getElementById('modalPauseBtn');
     const modalRewindBtn = document.getElementById('modalRewindBtn');
@@ -948,8 +1015,10 @@
             if (genre === 'all' && btn.getAttribute('data-genre') === 'all') btn.classList.add('active');
         });
         renderMoviesGrid();
+        renderHeroPosterRail();
         // 如果筛选后列表不为空，更新Hero为第一个电影
-        if (currentMovies.length) setHeroMovie(currentMovies[0]);
+        if (currentMovies.length) setHeroMovie(currentMovies[0], 0);
+        startHeroRotation();
     }
 
     function updateMovieRailButtons() {
@@ -999,20 +1068,69 @@
         updateMovieRailButtons();
     }
 
+    function goToMovieDetail(movie = currentHeroMovie) {
+        if (!movie) return;
+        window.location.href = `detail.html?id=${movie.id}`;
+    }
+
+    function renderHeroPosterRail() {
+        heroPosterRail.innerHTML = currentMovies.map((movie, idx) => `
+            <button class="hero-poster-card" data-hero-index="${idx}" type="button" aria-label="推介 ${movie.title}">
+                <img src="${movie.poster}" alt="${movie.title}" loading="lazy" onerror="this.src='https://placehold.co/300x450?text=Classic&bg=111111&fg=ffffff'">
+            </button>
+        `).join('');
+
+        heroPosterRail.querySelectorAll('.hero-poster-card').forEach(card => {
+            card.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const idx = Number(card.getAttribute('data-hero-index'));
+                const movie = currentMovies[idx];
+                if (movie) {
+                    setHeroMovie(movie, idx);
+                    restartHeroRotation();
+                }
+            });
+        });
+    }
+
+    function updateHeroPosterState() {
+        heroPosterRail.querySelectorAll('.hero-poster-card').forEach(card => {
+            card.classList.toggle('active', Number(card.getAttribute('data-hero-index')) === currentHeroIndex);
+        });
+    }
+
+    function showNextHeroMovie() {
+        if (!currentMovies.length) return;
+        const nextIndex = (currentHeroIndex + 1) % currentMovies.length;
+        setHeroMovie(currentMovies[nextIndex], nextIndex);
+    }
+
+    function startHeroRotation() {
+        window.clearInterval(heroRotationTimer);
+        heroRotationTimer = window.setInterval(showNextHeroMovie, 5200);
+    }
+
+    function restartHeroRotation() {
+        startHeroRotation();
+    }
+
     // 设置Hero Banner
-    function setHeroMovie(movie) {
+    function setHeroMovie(movie, index = currentMovies.findIndex(item => item.id === movie.id)) {
         currentHeroMovie = movie;
+        currentHeroIndex = Math.max(0, index);
         document.getElementById('heroTitle').innerText = movie.title;
         document.getElementById('heroOverview').innerText = movie.overview;
         document.getElementById('heroRating').innerHTML = movie.rating;
         document.getElementById('heroGenre').innerHTML = getGenreLabel(movie.genre);
         document.getElementById('heroBackdrop').src = movie.backdrop;
+        updateHeroPosterState();
         // 替换播放按钮事件（避免重复绑定）
         const oldBtn = document.getElementById('heroPlayBtn');
         const newBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-        newBtn.addEventListener('click', () => {
-            playMovie(movie);
+        newBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            goToMovieDetail(movie);
         });
     }
 
@@ -1110,6 +1228,9 @@
     movieScrollRight.addEventListener('click', () => scrollMovieRail(1));
     movieRail.addEventListener('scroll', updateMovieRailButtons, { passive: true });
     window.addEventListener('resize', updateMovieRailButtons);
+    heroSection.addEventListener('click', () => goToMovieDetail());
+    heroSection.addEventListener('mouseenter', () => window.clearInterval(heroRotationTimer));
+    heroSection.addEventListener('mouseleave', startHeroRotation);
 
     async function shareSite() {
         const movie = currentHeroMovie || moviesData[0];
@@ -1184,7 +1305,9 @@
         renderGenreFilter();
         currentMovies = [...moviesData];
         renderMoviesGrid();
-        setHeroMovie(moviesData[0]);
+        renderHeroPosterRail();
+        setHeroMovie(moviesData[0], 0);
+        startHeroRotation();
         // 模态关闭事件
         document.getElementById('closeModalBtn').addEventListener('click', closeModal);
         window.addEventListener('click', (e) => {
