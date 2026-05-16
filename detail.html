@@ -450,12 +450,16 @@
             background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
             padding: 20px 15px 10px;
             opacity: 0;
-            transition: opacity 0.3s;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
             z-index: 10;
         }
 
-        .player-container:hover .player-controls {
+        .player-container.controls-visible .player-controls {
             opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
 
         /* 进度条 */
@@ -821,7 +825,7 @@
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="player-container" id="playerContainer">
             <div class="video-wrapper">
-                <video id="videoPlayer" controls playsinline webkit-playsinline preload="auto"></video>
+                <video id="videoPlayer" playsinline webkit-playsinline preload="auto"></video>
                 <div class="player-status" id="playerStatus"></div>
             </div>
             <!-- 高级控制条 -->
@@ -1011,6 +1015,28 @@
         });
     }
 
+    let detailControlsTimer = null;
+    let detailControlsAutoHideSetup = false;
+
+    function showDetailPlayerControls() {
+        const playerContainer = document.getElementById('playerContainer');
+        playerContainer.classList.add('controls-visible');
+        window.clearTimeout(detailControlsTimer);
+        detailControlsTimer = window.setTimeout(() => {
+            playerContainer.classList.remove('controls-visible');
+        }, 5000);
+    }
+
+    function setupDetailControlAutoHide() {
+        if (detailControlsAutoHideSetup) return;
+        const playerContainer = document.getElementById('playerContainer');
+        ['mousemove', 'touchstart', 'click', 'keydown'].forEach(eventName => {
+            playerContainer.addEventListener(eventName, showDetailPlayerControls, { passive: true });
+        });
+        document.addEventListener('fullscreenchange', showDetailPlayerControls);
+        detailControlsAutoHideSetup = true;
+    }
+
     // 渲染详情页
     function renderDetail() {
         const movie = getCurrentMovie();
@@ -1056,6 +1082,8 @@
         const video = document.getElementById('videoPlayer');
         modal.classList.add('active');
         document.body.classList.add('modal-open');
+        setupDetailControlAutoHide();
+        showDetailPlayerControls();
         
         // 使用 StreamPlayer 初始化播放器
         if (!window.player) {
@@ -1212,6 +1240,8 @@
         const video = document.getElementById('videoPlayer');
         modal.classList.remove('active');
         document.body.classList.remove('modal-open');
+        document.getElementById('playerContainer').classList.remove('controls-visible');
+        window.clearTimeout(detailControlsTimer);
         
         if (window.player) {
             window.player.pause();

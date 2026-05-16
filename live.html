@@ -217,6 +217,12 @@
             color: #fff;
         }
 
+        .btn-secondary.active {
+            color: #ff4d57;
+            border-color: rgba(229,9,20,0.55);
+            background: rgba(229,9,20,0.12);
+        }
+
         .btn-secondary svg {
             width: 22px;
             height: 22px;
@@ -446,6 +452,16 @@
                         <path d="M7 5h4v14H7zM13 5h4v14h-4z"></path>
                     </svg>
                 </button>
+                <button class="btn-secondary" id="forwardBtn" type="button" aria-label="快进 10 秒" title="快进 10 秒">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M13 7v10l7-5-7-5zM4 7v10l7-5-7-5z"></path>
+                    </svg>
+                </button>
+                <button class="btn-secondary" id="rewindBtn" type="button" aria-label="快退 10 秒" title="快退 10 秒">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M11 7v10l-7-5 7-5zM20 7v10l-7-5 7-5z"></path>
+                    </svg>
+                </button>
                 <button class="btn-secondary" id="refreshBtn" type="button" aria-label="刷新流" title="刷新流">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
@@ -461,6 +477,11 @@
                 <button class="btn-secondary" id="fullscreenBtn" type="button" aria-label="全屏" title="全屏">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"></path>
+                    </svg>
+                </button>
+                <button class="btn-secondary" id="favoriteBtn" type="button" aria-label="收藏频道" title="收藏频道">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.35-9-9.2C1.8 7.85 3.7 5 6.8 5c1.8 0 3.1 1 3.9 2.1C11.5 6 12.8 5 14.6 5c3.1 0 5 2.85 3.8 5.8C16.4 15.65 12 20 12 20z"></path>
                     </svg>
                 </button>
             </div>
@@ -510,9 +531,12 @@
     const scheduleList = document.getElementById('scheduleList');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    const rewindBtn = document.getElementById('rewindBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const joinBtn = document.getElementById('joinBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const favoriteBtn = document.getElementById('favoriteBtn');
     const playerCard = document.querySelector('.player-card');
 
     let streamPlayer = null;
@@ -592,6 +616,46 @@
             .catch(() => setLiveStatus('请点击播放以继续直播'));
     }
 
+    function seekLive(seconds) {
+        if (!Number.isFinite(video.duration)) {
+            setLiveStatus('当前直播流不支持快进快退');
+            return;
+        }
+        video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+        setLiveStatus(seconds > 0 ? '已快进 10 秒' : '已快退 10 秒');
+    }
+
+    function getFavoriteChannels() {
+        try {
+            return JSON.parse(localStorage.getItem('favoriteLiveChannels') || '[]');
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function setFavoriteChannels(ids) {
+        localStorage.setItem('favoriteLiveChannels', JSON.stringify(ids));
+    }
+
+    function updateFavoriteButton() {
+        const favorites = getFavoriteChannels();
+        const isFavorite = favorites.includes(activeChannel.id);
+        favoriteBtn.classList.toggle('active', isFavorite);
+        favoriteBtn.setAttribute('aria-label', isFavorite ? '取消收藏频道' : '收藏频道');
+        favoriteBtn.setAttribute('title', isFavorite ? '取消收藏频道' : '收藏频道');
+    }
+
+    function toggleFavoriteChannel() {
+        const favorites = getFavoriteChannels();
+        const isFavorite = favorites.includes(activeChannel.id);
+        const nextFavorites = isFavorite
+            ? favorites.filter(id => id !== activeChannel.id)
+            : [...favorites, activeChannel.id];
+        setFavoriteChannels(nextFavorites);
+        updateFavoriteButton();
+        setLiveStatus(isFavorite ? '已取消收藏频道' : '已收藏频道');
+    }
+
     function showControls() {
         playerCard.classList.add('controls-visible');
         window.clearTimeout(controlsTimer);
@@ -616,6 +680,7 @@
         document.querySelectorAll('.channel-card').forEach(card => {
             card.classList.toggle('active', Number(card.getAttribute('data-id')) === channel.id);
         });
+        updateFavoriteButton();
         loadStream(channel.stream);
     }
 
@@ -635,6 +700,14 @@
         setLiveStatus('已暂停');
     });
 
+    forwardBtn.addEventListener('click', () => {
+        seekLive(10);
+    });
+
+    rewindBtn.addEventListener('click', () => {
+        seekLive(-10);
+    });
+
     refreshBtn.addEventListener('click', () => {
         setLiveStatus('正在刷新播放流...');
         loadStream(activeChannel.stream);
@@ -651,6 +724,8 @@
             document.exitFullscreen?.();
         }
     });
+
+    favoriteBtn.addEventListener('click', toggleFavoriteChannel);
 
     window.addEventListener('load', () => {
         renderChannels();
