@@ -124,6 +124,13 @@
             min-width: 0;
         }
 
+        .player-card.controls-visible .player-actions,
+        .player-card:focus-within .player-actions {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
         .video-wrapper {
             position: relative;
             background: #000;
@@ -169,6 +176,10 @@
             flex-wrap: wrap;
             background: rgba(12,12,14,0.96);
             border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
         .player-actions .btn-secondary,
@@ -507,6 +518,7 @@
 
     let streamPlayer = null;
     let activeChannel = liveChannels[0];
+    let controlsTimer = null;
 
     function renderChannels() {
         channelList.innerHTML = liveChannels.map(channel => `
@@ -581,6 +593,27 @@
             .catch(() => setLiveStatus('请点击播放以继续直播'));
     }
 
+    function showControls() {
+        playerCard.classList.add('controls-visible');
+        window.clearTimeout(controlsTimer);
+        controlsTimer = window.setTimeout(() => {
+            if (!playerCard.matches(':focus-within')) {
+                playerCard.classList.remove('controls-visible');
+            }
+        }, 5000);
+    }
+
+    function setupControlAutoHide() {
+        ['mousemove', 'touchstart', 'click', 'keydown'].forEach(eventName => {
+            playerCard.addEventListener(eventName, showControls, { passive: true });
+        });
+
+        playerCard.addEventListener('focusin', showControls);
+        playerCard.addEventListener('focusout', showControls);
+        document.addEventListener('fullscreenchange', showControls);
+        showControls();
+    }
+
     function selectChannel(channel) {
         activeChannel = channel;
         document.querySelectorAll('.channel-card').forEach(card => {
@@ -628,6 +661,7 @@
         setupPlayer();
         selectChannel(activeChannel);
         updateControlState();
+        setupControlAutoHide();
     });
 </script>
 </body>
