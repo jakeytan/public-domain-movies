@@ -124,8 +124,7 @@
             min-width: 0;
         }
 
-        .player-card.controls-visible .player-actions,
-        .player-card:focus-within .player-actions {
+        .player-card.controls-visible .player-actions {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
@@ -597,9 +596,7 @@
         playerCard.classList.add('controls-visible');
         window.clearTimeout(controlsTimer);
         controlsTimer = window.setTimeout(() => {
-            if (!playerCard.matches(':focus-within')) {
-                playerCard.classList.remove('controls-visible');
-            }
+            playerCard.classList.remove('controls-visible');
         }, 5000);
     }
 
