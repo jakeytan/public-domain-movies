@@ -886,7 +886,10 @@
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
             poster: "https://placehold.co/300x450?text=All+Quiet&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
+            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_video.mp4", 
+            audioUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_audio.m4a", 
+            subtitleUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/subtitles/west_no_war.vtt",
+            fallbackVideoUrl: ""  
         },
         { 
             id: 3,
@@ -1106,6 +1109,17 @@
         video.muted = true;
     } else {
         video.muted = false;
+    }
+
+    video.querySelectorAll('track').forEach(track => track.remove());
+    if (movie.subtitleUrl) {
+        const subtitleTrack = document.createElement('track');
+        subtitleTrack.kind = 'subtitles';
+        subtitleTrack.label = movie.subtitleLabel || '中文字幕';
+        subtitleTrack.srclang = movie.subtitleLang || 'zh';
+        subtitleTrack.src = movie.subtitleUrl;
+        subtitleTrack.default = true;
+        video.appendChild(subtitleTrack);
     }
 
     // 同步播放辅助函数
