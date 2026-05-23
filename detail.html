@@ -1079,69 +1079,158 @@
     `).join('');
 }
     function playMovie(movie) {
-        const modal = document.getElementById('videoModal');
-        const video = document.getElementById('videoPlayer');
-        modal.classList.add('active');
-        document.body.classList.add('modal-open');
-        setupDetailControlAutoHide();
-        showDetailPlayerControls();
-        
-        // 使用 StreamPlayer 初始化播放器
-        if (!window.player) {
-            window.player = new StreamPlayer(video, {
-                autoplay: true,
-                hlsConfig: {
-                    maxLoadingDelay: 4,
-                    minAutoBitrate: 0,
-                    maxAutoBitrate: 8000000,
-                    startLevel: -1  // 自动选择
-                }
-            });
-            
-            setupPlayerControls();
-            
-            // 监听播放器事件
-            window.player.on('buffering', () => {
-                showPlayerStatus('loading', '缓冲中...');
-            });
-            
-            window.player.on('buffered', () => {
-                hidePlayerStatus();
-            });
-            
-            window.player.on('error', (error) => {
-                console.error('播放错误:', error);
-                showPlayerStatus('error', '播放失败，点击重试');
-                // 添加重试功能
-                document.getElementById('playerStatus').style.cursor = 'pointer';
-                document.getElementById('playerStatus').onclick = () => {
-                    if (window.player) {
-                        window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
-                    }
-                };
-            });
-            
-            window.player.on('qualitychange', (data) => {
-                console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
-            });
-        }
-        
-        // 加载视频
-        window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
-        
-        // 更新画质选项
-        setTimeout(() => {
-            const qualities = window.player.getQualityLevels();
-            if (qualities.length > 0) {
-                const qualityMenu = document.getElementById('qualityMenu');
-                qualityMenu.innerHTML = qualities.map((q, idx) => `
-                    <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
-                        ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
-                    </div>
-                `).join('');
-            }
-        }, 500);
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('videoPlayer');
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+    setupDetailControlAutoHide();
+    showDetailPlayerControls();
+
+    // ---- 新增：处理独立音频（如果存在）----
+    let audio = null;
+    let syncTimer = null;
+
+    // 移除可能残留的旧音频元素
+    const oldAudio = document.getElementById('syncAudio');
+    if (oldAudio) oldAudio.remove();
+
+    if (movie.audioUrl) {
+        audio = document.createElement('audio');
+        audio.id = 'syncAudio';
+        audio.src = movie.audioUrl;
+        audio.preload = 'metadata';
+        audio.style.display = 'none';
+        modal.appendChild(audio);
+
+        // 视频必须静音（避免原视频音轨干扰）
+        video.muted = true;
+    } else {
+        video.muted = false;
     }
+
+    // 同步播放辅助函数
+    function startSync() {
+        if (!audio || syncTimer) return;
+        syncTimer = setInterval(() => {
+            if (video.paused || audio.paused) return;
+            const diff = Math.abs(video.currentTime - audio.currentTime);
+            if (diff > 0.3) {
+                // 以视频时间为准校准音频
+                audio.currentTime = video.currentTime;
+            }
+        }, 200);
+    }
+
+    function stopSync() {
+        if (syncTimer) {
+            clearInterval(syncTimer);
+            syncTimer = null;
+        }
+    }
+
+    function onVideoPlay() {
+        if (audio && audio.paused) audio.play().catch(e => console.warn);
+        startSync();
+    }
+    function onVideoPause() {
+        if (audio && !audio.paused) audio.pause();
+        stopSync();
+    }
+    function onVideoSeek() {
+        if (audio) audio.currentTime = video.currentTime;
+    }
+    function onAudioSeek() {
+        if (video) video.currentTime = audio.currentTime;
+    }
+
+    if (audio) {
+        video.addEventListener('play', onVideoPlay);
+        video.addEventListener('pause', onVideoPause);
+        video.addEventListener('seeked', onVideoSeek);
+        audio.addEventListener('play', onVideoPlay);
+        audio.addEventListener('pause', onVideoPause);
+        audio.addEventListener('seeked', onAudioSeek);
+    }
+
+    // 保存清理函数，以便在关闭模态时移除事件和定时器
+    const cleanupSync = () => {
+        if (audio) {
+            video.removeEventListener('play', onVideoPlay);
+            video.removeEventListener('pause', onVideoPause);
+            video.removeEventListener('seeked', onVideoSeek);
+            audio.removeEventListener('play', onVideoPlay);
+            audio.removeEventListener('pause', onVideoPause);
+            audio.removeEventListener('seeked', onAudioSeek);
+            audio.pause();
+            audio.src = '';
+            audio.remove();
+        }
+        stopSync();
+    };
+    // 将清理函数挂载到 window 上，供原 closeModal 调用
+    window._cleanupSync = cleanupSync;
+    // ---- 独立音频处理结束 ----
+
+    // 使用 StreamPlayer 初始化播放器（原有逻辑，不变）
+    if (!window.player) {
+        window.player = new StreamPlayer(video, {
+            autoplay: true,
+            hlsConfig: {
+                maxLoadingDelay: 4,
+                minAutoBitrate: 0,
+                maxAutoBitrate: 8000000,
+                startLevel: -1
+            }
+        });
+
+        setupPlayerControls();
+
+        window.player.on('buffering', () => {
+            showPlayerStatus('loading', '缓冲中...');
+        });
+
+        window.player.on('buffered', () => {
+            hidePlayerStatus();
+        });
+
+        window.player.on('error', (error) => {
+            console.error('播放错误:', error);
+            showPlayerStatus('error', '播放失败，点击重试');
+            const statusEl = document.getElementById('playerStatus');
+            statusEl.style.cursor = 'pointer';
+            statusEl.onclick = () => {
+                if (window.player) {
+                    window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+                }
+            };
+        });
+
+        window.player.on('qualitychange', (data) => {
+            console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
+        });
+    }
+
+    // 加载视频
+    window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+
+    // 若有独立音频，同时启动音频
+    if (audio) {
+        audio.play().catch(e => console.warn('音频自动播放失败', e));
+    }
+
+    // 更新画质选项
+    setTimeout(() => {
+        const qualities = window.player.getQualityLevels();
+        if (qualities.length > 0) {
+            const qualityMenu = document.getElementById('qualityMenu');
+            qualityMenu.innerHTML = qualities.map((q, idx) => `
+                <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
+                    ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
+                </div>
+            `).join('');
+        }
+    }, 500);
+}
 
     // 播放器控制
     function setupPlayerControls() {
