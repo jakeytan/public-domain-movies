@@ -11,7 +11,7 @@
     "player.js": "播放器引擎 - HLS流媒体支持",
     "style.css": "样式文件",
     "logo.png": "品牌logo",
-    "logo.svg": "备用logo"
+    "logo02.svg": "备用logo"
   },
   "features": {
     "videoPlayback": {
@@ -20,7 +20,7 @@
       "adaptiveBitrate": true
     },
     "images": {
-      "placeholders": "via.placeholder.com",
+      "placeholders": "placehold.co",
       "encoding": "URL encoded (%20)",
       "fallback": true
     },

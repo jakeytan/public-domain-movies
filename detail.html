@@ -1339,7 +1339,10 @@
             window.player = null;
         }
         
-        video.src = '';
+        if (window._cleanupSync) {
+            window._cleanupSync();
+            window._cleanupSync = null;
+        }  
     }
 
     function goHome() {

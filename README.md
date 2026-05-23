@@ -1,6 +1,6 @@
 # 🎬 鑫艺影像馆 - 经典电影自由分享平台
 
-![鑫艺影像馆 logo](logo.svg)
+![鑫艺影像馆 logo](logo.png)
 
 > 一个专业级的经典电影播放平台，采用最新的流媒体技术和 CDN 加速
 
@@ -71,11 +71,12 @@
 ├── player.js            # 高性能播放器引擎
 ├── style.css            # 样式（集成至 HTML）
 ├── script.js            # 脚本（集成至 HTML）
-├── logo.svg             # 品牌 logo，统一页面头部显示
+├── logo.png             # 品牌 logo，统一页面头部显示
+├── logo02.svg           # 备用矢量 logo
 └── README.md            # 本文件
 ```
 
-> 所有页面头部 logo 均使用 `logo.svg` 作为统一品牌标识。
+> 所有页面头部 logo 均使用 `logo.png` 作为统一品牌标识。
 ## 🎯 使用流程
 
 ```
