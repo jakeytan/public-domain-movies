@@ -826,7 +826,7 @@
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="player-container" id="playerContainer">
             <div class="video-wrapper">
-                <video id="videoPlayer" playsinline webkit-playsinline preload="auto"></video>
+                <video id="videoPlayer" playsinline webkit-playsinline preload="metadata"></video>
                 <div class="player-status" id="playerStatus"></div>
             </div>
             <!-- 高级控制条 -->
@@ -872,6 +872,7 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
+            hlsUrl: "",
             videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
             fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
         },
@@ -886,6 +887,7 @@
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
             poster: "https://placehold.co/300x450?text=All+Quiet&bg=111111&fg=ffffff", 
+            hlsUrl: "",
             videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_video.mp4", 
             audioUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_audio.m4a", 
             subtitleUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/subtitles/west_no_war.vtt",
@@ -969,6 +971,23 @@
         const movieId = parseInt(params.get('id'));
         const movie = moviesData.find(m => m.id === movieId);
         return movie || moviesData[0];
+    }
+
+    function getMoviePlaybackSource(movie) {
+        const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();
+        if (hlsUrl) {
+            return {
+                url: hlsUrl,
+                type: 'hls',
+                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || ''
+            };
+        }
+
+        return {
+            url: movie.videoUrl,
+            type: 'auto',
+            fallbackUrl: movie.fallbackVideoUrl || ''
+        };
     }
 
     function showShareToast(message) {
@@ -1214,7 +1233,8 @@
             statusEl.style.cursor = 'pointer';
             statusEl.onclick = () => {
                 if (window.player) {
-                    window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+                    const source = getMoviePlaybackSource(movie);
+                    window.player.load(source.url, source.type, source.fallbackUrl);
                 }
             };
         });
@@ -1225,7 +1245,8 @@
     }
 
     // 加载视频
-    window.player.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+    const source = getMoviePlaybackSource(movie);
+    window.player.load(source.url, source.type, source.fallbackUrl);
 
     // 若有独立音频，同时启动音频
     if (audio) {

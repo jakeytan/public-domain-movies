@@ -159,10 +159,30 @@ player.on('error', (error) => console.error('错误:', error));
 ### 视频源格式
 ```
 推荐 HLS 多码率方案：
-├─ stream_720p.m3u8 (2.5Mbps, 1280x720)
-├─ stream_480p.m3u8 (1.5Mbps, 854x480)
-└─ stream_360p.m3u8 (0.8Mbps, 640x360)
+├─ master.m3u8
+├─ 720p/index.m3u8 (约 2.8Mbps, 1280x720)
+├─ 480p/index.m3u8 (约 1.4Mbps, 854x480)
+└─ 360p/index.m3u8 (约 0.8Mbps, 640x360)
 ```
+
+当前线上主片源仍是大体积 MP4，例如 `the_circus.mp4` 约 4.38GB、`quiet_west_front_video.mp4` 约 1.71GB。它们支持 Range 请求，但直接播放超大 MP4 仍容易在移动网络、跨地区访问或多人同时观看时卡顿。生产环境应把原片转成多码率 HLS 后上传到 R2/CDN，再在电影数据里填写 `hlsUrl`，保留 `videoUrl` 作为 MP4 兜底。
+
+本地转码示例：
+
+```bash
+tools/transcode-hls.sh the_circus.mp4 dist/the-circus-hls
+```
+
+上传 `dist/the-circus-hls/` 到对象存储后，将电影数据改成：
+
+```javascript
+{
+    hlsUrl: "https://your-cdn.example.com/the-circus-hls/master.m3u8",
+    videoUrl: "https://your-cdn.example.com/the_circus.mp4"
+}
+```
+
+播放器会优先使用 `hlsUrl`，不支持或出错时再回退到 `videoUrl`。
 
 ### CDN 提供商
 - **Cloudflare** - 全球加速 + R2 存储
