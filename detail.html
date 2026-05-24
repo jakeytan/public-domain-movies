@@ -1142,16 +1142,20 @@
     }
 
     // 同步播放辅助函数
+    function syncAudioToVideo(force = false) {
+        if (!audio || !Number.isFinite(video.currentTime)) return;
+        const diff = Math.abs(video.currentTime - audio.currentTime);
+        if (!force && diff <= 0.45) return;
+
+        audio.currentTime = video.currentTime;
+    }
+
     function startSync() {
         if (!audio || syncTimer) return;
         syncTimer = setInterval(() => {
-            if (video.paused || audio.paused) return;
-            const diff = Math.abs(video.currentTime - audio.currentTime);
-            if (diff > 0.3) {
-                // 以视频时间为准校准音频
-                audio.currentTime = video.currentTime;
-            }
-        }, 200);
+            if (video.paused || video.seeking || audio.seeking) return;
+            syncAudioToVideo(false);
+        }, 750);
     }
 
     function stopSync() {
@@ -1162,7 +1166,10 @@
     }
 
     function onVideoPlay() {
-        if (audio && audio.paused) audio.play().catch(e => console.warn);
+        if (audio && audio.paused) {
+            syncAudioToVideo(false);
+            audio.play().catch(error => console.warn('音频播放延迟', error));
+        }
         startSync();
     }
     function onVideoPause() {
@@ -1170,18 +1177,29 @@
         stopSync();
     }
     function onVideoSeek() {
-        if (audio) audio.currentTime = video.currentTime;
+        syncAudioToVideo(true);
     }
     function onAudioSeek() {
-        if (video) video.currentTime = audio.currentTime;
+        startSync();
+    }
+    function onVideoWaiting() {
+        if (audio && !audio.paused) audio.pause();
+    }
+    function onVideoPlaying() {
+        if (audio && !video.paused && audio.paused) {
+            syncAudioToVideo(false);
+            audio.play().catch(error => console.warn('音频恢复播放延迟', error));
+        }
+        startSync();
     }
 
     if (audio) {
         video.addEventListener('play', onVideoPlay);
         video.addEventListener('pause', onVideoPause);
         video.addEventListener('seeked', onVideoSeek);
-        audio.addEventListener('play', onVideoPlay);
-        audio.addEventListener('pause', onVideoPause);
+        video.addEventListener('waiting', onVideoWaiting);
+        video.addEventListener('stalled', onVideoWaiting);
+        video.addEventListener('playing', onVideoPlaying);
         audio.addEventListener('seeked', onAudioSeek);
     }
 
@@ -1191,8 +1209,9 @@
             video.removeEventListener('play', onVideoPlay);
             video.removeEventListener('pause', onVideoPause);
             video.removeEventListener('seeked', onVideoSeek);
-            audio.removeEventListener('play', onVideoPlay);
-            audio.removeEventListener('pause', onVideoPause);
+            video.removeEventListener('waiting', onVideoWaiting);
+            video.removeEventListener('stalled', onVideoWaiting);
+            video.removeEventListener('playing', onVideoPlaying);
             audio.removeEventListener('seeked', onAudioSeek);
             audio.pause();
             audio.src = '';
@@ -1247,11 +1266,6 @@
     // 加载视频
     const source = getMoviePlaybackSource(movie);
     window.player.load(source.url, source.type, source.fallbackUrl);
-
-    // 若有独立音频，同时启动音频
-    if (audio) {
-        audio.play().catch(e => console.warn('音频自动播放失败', e));
-    }
 
     // 更新画质选项
     setTimeout(() => {
