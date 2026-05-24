@@ -10,10 +10,16 @@ class StreamPlayer {
             autoplay: options.autoplay || false,
             preload: options.preload || 'metadata',
             hlsConfig: {
+                enableWorker: true,
+                lowLatencyMode: false,
+                capLevelToPlayerSize: true,
                 maxLoadingDelay: 4,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                backBufferLength: 30,
                 minAutoBitrate: 0,
                 maxAutoBitrate: 5000000,
-                startLevel: 0,
+                startLevel: -1,
                 emeEnabled: false,
                 ...options.hlsConfig
             },
@@ -83,6 +89,22 @@ class StreamPlayer {
         this.hls.on(Hls.Events.ERROR, (event, data) => {
             console.error('HLS Error:', data);
             if (data.fatal) {
+                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                    this.hls.startLoad();
+                    return;
+                }
+
+                if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                    this.hls.recoverMediaError();
+                    return;
+                }
+
+                if (this.fallbackUrl && !this.hasTriedFallback) {
+                    this.hasTriedFallback = true;
+                    this.load(this.fallbackUrl, 'auto');
+                    return;
+                }
+
                 this.emit('error', data);
             }
         });
@@ -131,6 +153,14 @@ class StreamPlayer {
         this._onEnded = () => this.emit('ended');
         this._onLoadStart = () => this.emit('loading');
         this._onCanPlay = () => this.emit('canplay');
+        this._onWaiting = () => {
+            this.isBuffering = true;
+            this.emit('buffering');
+        };
+        this._onPlaying = () => {
+            this.isBuffering = false;
+            this.emit('buffered');
+        };
 
         this._onError = (e) => {
             const error = this.video.error;
@@ -163,6 +193,9 @@ class StreamPlayer {
         this.video.addEventListener('ended', this._onEnded);
         this.video.addEventListener('loadstart', this._onLoadStart);
         this.video.addEventListener('canplay', this._onCanPlay);
+        this.video.addEventListener('waiting', this._onWaiting);
+        this.video.addEventListener('stalled', this._onWaiting);
+        this.video.addEventListener('playing', this._onPlaying);
         this.video.addEventListener('error', this._onError);
         window.addEventListener('online', this._onOnline);
         window.addEventListener('offline', this._onOffline);
@@ -179,6 +212,11 @@ class StreamPlayer {
         
         // Reset video element state before loading new source
         this.video.pause();
+        this.video.preload = this.options.preload;
+        if (this.hls) {
+            this.hls.stopLoad();
+            this.hls.detachMedia();
+        }
         this.video.removeAttribute('src');
         this.video.load();
         
@@ -274,6 +312,9 @@ class StreamPlayer {
         this.video.removeEventListener('ended', this._onEnded);
         this.video.removeEventListener('loadstart', this._onLoadStart);
         this.video.removeEventListener('canplay', this._onCanPlay);
+        this.video.removeEventListener('waiting', this._onWaiting);
+        this.video.removeEventListener('stalled', this._onWaiting);
+        this.video.removeEventListener('playing', this._onPlaying);
         this.video.removeEventListener('error', this._onError);
         
         // Remove window event listeners

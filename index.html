@@ -839,7 +839,7 @@
     <div class="modal-container">
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="video-wrapper">
-            <video id="videoPlayer" playsinline webkit-playsinline preload="auto"></video>
+            <video id="videoPlayer" playsinline webkit-playsinline preload="metadata"></video>
         </div>
         <div class="modal-player-controls" aria-label="推荐影片播放控制">
             <button class="modal-control-btn primary" id="modalPlayBtn" type="button" aria-label="播放" title="播放">
@@ -891,6 +891,7 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
+            hlsUrl: "",
             videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
             fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
         },
@@ -902,9 +903,12 @@
             overview: "反战史诗，第一次世界大战惨烈真实写照。", 
             director: "刘易斯·迈尔斯通",
             rating: "⭐⭐⭐⭐⭐ 8.9", 
-            backdrop: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200", 
-            poster: "https://placehold.co/300x450?text=All+Quiet&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
+            backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/backdrops/all_quiet_backdrop.jpg?v=20260524", 
+            poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/all_quiet_poster.jpg?v=20260524", 
+            hlsUrl: "",
+            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_video.mp4", 
+            audioUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_audio.m4a", 
+            fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"  
         },
         { 
             id: 3,
@@ -992,6 +996,23 @@
     function getGenreLabel(genre) {
         const map = { Comedy: "喜剧", Drama: "剧情", "Sci-Fi": "科幻", Horror: "恐怖", Action: "动作" };
         return map[genre] || genre;
+    }
+
+    function getMoviePlaybackSource(movie) {
+        const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();
+        if (hlsUrl) {
+            return {
+                url: hlsUrl,
+                type: 'hls',
+                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || ''
+            };
+        }
+
+        return {
+            url: movie.videoUrl,
+            type: 'auto',
+            fallbackUrl: movie.fallbackVideoUrl || ''
+        };
     }
 
     // 渲染分类按钮
@@ -1289,7 +1310,8 @@
             });
         }
         
-        window.indexPlayer.load(movie.videoUrl, 'auto', movie.fallbackVideoUrl);
+        const source = getMoviePlaybackSource(movie);
+        window.indexPlayer.load(source.url, source.type, source.fallbackUrl);
     }
 
     // 关闭模态框
