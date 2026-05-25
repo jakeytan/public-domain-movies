@@ -9,15 +9,17 @@
 ### 🎥 电影展示
 - **主页首页** (`index.html`) - 精选电影展示，分类浏览
 - **电影详情页** (`detail.html`) - 完整信息展示（封面、导演、演员、评分、剧情）
+- **收藏页** (`favorites.html`) - 基于本地收藏列表展示已收藏影片
 - **直播入口** (`live.html`) - 实时电影直播频道与推流体验
 - **推荐系统** - 基于类型的相关电影推荐
+- **继续观看** - 使用 `localStorage` 保存 `progress_影片ID`，再次播放自动续播
 
 ### ⚡ 流媒体播放 (StreamPlayer)
 高性能播放器引擎 (`player.js`)：
 
 #### 🌐 HLS 流媒体支持
 - 使用 `hls.js` 库（CDN 加载：jsDelivr）
-- 支持 HLS (.m3u8) 和标准视频格式降级
+- 以 HLS (.m3u8) 为主播放格式
 - Safari 原生 HLS 自动识别
 
 #### 🎬 自适应码率 (ABR)
@@ -35,7 +37,7 @@
 - **实时缓冲进度条** - 可视化显示已缓冲内容
 - **缓冲状态提示** - "缓冲中..." 动画反馈
 - **智能预加载** - maxLoadingDelay: 4秒
-- **自动降级** - 网络错误时自动切换到 MP4
+- **HLS 优先** - 生产片源使用多码率 HLS，避免超大 MP4 直连
 
 ### 🚀 CDN 加速方案
 
@@ -67,6 +69,7 @@
 .
 ├── index.html           # 主页 - 电影列表、分类、播放
 ├── detail.html          # 电影详情页 - 完整信息 + 推荐
+├── favorites.html       # 收藏页 - localStorage 收藏列表
 ├── live.html            # 直播入口 - 实时电影直播频道
 ├── player.js            # 高性能播放器引擎
 ├── style.css            # 样式（集成至 HTML）
@@ -90,6 +93,8 @@ StreamPlayer 高性能播放
     ├─ 缓冲进度显示
     └─ 画质动态切换
 ```
+
+详情页 URL 保持 `detail.html?id=1` 这种查询参数形式。Cloudflare Pages 和 GitHub Pages 直接刷新该地址通常可以命中静态文件；不要改成 `/movie/1` 伪静态路径，除非同时配置好对应的 rewrite 规则，否则刷新或外部分享容易 404。
 
 ## 💡 播放器 API 文档
 
@@ -144,7 +149,7 @@ player.on('error', (error) => console.error('错误:', error));
 | **画质选择** | 手动切换 360p/480p/720p 等 |
 | **播放速度** | 0.5x / 0.75x / 1x / 1.25x / 1.5x / 2x |
 | **全屏支持** | 全屏和小窗口模式 |
-| **错误降级** | 自动切换到 MP4 格式 |
+| **播放源策略** | 生产环境统一使用 HLS `index.m3u8` |
 | **网络监控** | 实时带宽检测和离线提示 |
 
 ## 🌍 依赖库
@@ -159,30 +164,44 @@ player.on('error', (error) => console.error('错误:', error));
 ### 视频源格式
 ```
 推荐 HLS 多码率方案：
-├─ master.m3u8
+├─ index.m3u8
 ├─ 720p/index.m3u8 (约 2.8Mbps, 1280x720)
 ├─ 480p/index.m3u8 (约 1.4Mbps, 854x480)
 └─ 360p/index.m3u8 (约 0.8Mbps, 640x360)
 ```
 
-当前线上主片源仍是大体积 MP4，例如 `the_circus.mp4` 约 4.38GB、`quiet_west_front_video.mp4` 约 1.71GB。它们支持 Range 请求，但直接播放超大 MP4 仍容易在移动网络、跨地区访问或多人同时观看时卡顿。生产环境应把原片转成多码率 HLS 后上传到 R2/CDN，再在电影数据里填写 `hlsUrl`，保留 `videoUrl` 作为 MP4 兜底。
+生产环境不要把超大 MP4 作为网页主播放地址。MP4 即使支持 Range，也很难解决移动端耗流量、无法自适应码率、大片 seek 卡顿和 CDN/回源压力问题。主片源统一转成多码率 HLS 后上传到 R2/CDN，再在电影数据里填写 `hlsUrl`，`videoUrl` 保持空字符串。
+
+推荐链路：
+
+```text
+OBS / FFmpeg
+    ↓
+MediaMTX
+    ↓
+HLS
+    ↓
+Cloudflare CDN / R2
+    ↓
+网页播放器
+```
 
 本地转码示例：
 
 ```bash
-tools/transcode-hls.sh the_circus.mp4 dist/the-circus-hls
+tools/transcode-hls.sh the_circus.mp4 dist/hls/the-circus
 ```
 
-上传 `dist/the-circus-hls/` 到对象存储后，将电影数据改成：
+上传 `dist/hls/the-circus/` 到对象存储后，将电影数据配置为：
 
 ```javascript
 {
-    hlsUrl: "https://your-cdn.example.com/the-circus-hls/master.m3u8",
-    videoUrl: "https://your-cdn.example.com/the_circus.mp4"
+    hlsUrl: "https://your-cdn.example.com/hls/the-circus/index.m3u8",
+    videoUrl: ""
 }
 ```
 
-播放器会优先使用 `hlsUrl`，不支持或出错时再回退到 `videoUrl`。
+播放器会直接使用 `hlsUrl`。Safari 走原生 HLS，其他现代浏览器走 hls.js。
 
 ### CDN 提供商
 - **Cloudflare** - 全球加速 + R2 存储

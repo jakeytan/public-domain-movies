@@ -22,9 +22,9 @@ ffmpeg -y -i "$input" \
   -hls_playlist_type vod \
   -hls_flags independent_segments \
   -hls_segment_type fmp4 \
-  -master_pl_name master.m3u8 \
+  -master_pl_name index.m3u8 \
   -var_stream_map "v:0,a:0,name:720p v:1,a:1,name:480p v:2,a:2,name:360p" \
   -hls_segment_filename "$output_dir/%v/seg_%05d.m4s" \
   "$output_dir/%v/index.m3u8"
 
-echo "HLS output ready: $output_dir/master.m3u8"
+echo "HLS output ready: $output_dir/index.m3u8"

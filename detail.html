@@ -13,8 +13,6 @@
     <title>电影详情 - 鑫艺影像馆</title>
     <!-- HLS.js 库 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-</head>
-<body>
     <style>
         * {
             margin: 0;
@@ -749,6 +747,9 @@
             }
         }
     </style>
+</head>
+
+<body>
 
 <nav class="navbar">
     <div class="logo" onclick="goHome()">
@@ -760,6 +761,7 @@
     </div>
     <div>
         <a class="nav-link" href="live.html">直播入口</a>
+        <a class="nav-link" href="favorites.html">我的收藏</a>
     </div>
     <button class="back-btn" onclick="goHome()">← 返回首页</button>
 </nav>
@@ -872,9 +874,9 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
-            hlsUrl: "",
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
-            fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/the-circus/index.m3u8",
+            videoUrl: "",
+            fallbackVideoUrl: ""
         },
         { 
             id: 2,
@@ -887,8 +889,8 @@
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/backdrops/all_quiet_backdrop.jpg?v=20260524", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/all_quiet_poster.jpg?v=20260524", 
-            hlsUrl: "",
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_video.mp4", 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/all-quiet-on-the-western-front/index.m3u8",
+            videoUrl: "", 
             audioUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_audio.m4a", 
             subtitleUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/subtitles/west_no_war.vtt",
             fallbackVideoUrl: ""  
@@ -904,7 +906,8 @@
             rating: "⭐⭐⭐⭐⭐ 8.5", 
             backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
             poster: "https://placehold.co/300x450?text=Metropolis&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/metropolis/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 4,
@@ -917,7 +920,8 @@
             rating: "⭐⭐⭐⭐ 8.0", 
             backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
             poster: "https://placehold.co/300x450?text=Nosferatu&bg=111111&fg=ffffff", 
-            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/nosferatu/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 5,
@@ -930,7 +934,8 @@
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
             poster: "https://placehold.co/300x450?text=Modern+Times&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/modern-times/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 6,
@@ -943,7 +948,8 @@
             rating: "⭐⭐⭐⭐ 7.8", 
             backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
             poster: "https://placehold.co/300x450?text=Frankenstein&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/frankenstein/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 7,
@@ -956,7 +962,8 @@
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
             poster: "https://placehold.co/300x450?text=The+General&bg=111111&fg=ffffff", 
-            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/the-general/index.m3u8",
+            videoUrl: "" 
         }
     ];
 
@@ -1040,6 +1047,59 @@
 
     let detailControlsTimer = null;
     let detailControlsAutoHideSetup = false;
+    let detailProgressCleanup = null;
+
+    function getProgressKey(movieId) {
+        return `progress_${movieId}`;
+    }
+
+    function getSavedProgress(movieId) {
+        const value = Number(localStorage.getItem(getProgressKey(movieId)) || 0);
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function saveMovieProgress(movieId, video) {
+        if (!movieId || !Number.isFinite(video.currentTime)) return;
+        if (Number.isFinite(video.duration) && video.duration > 0 && video.duration - video.currentTime < 12) {
+            localStorage.removeItem(getProgressKey(movieId));
+            return;
+        }
+        if (video.currentTime >= 5) {
+            localStorage.setItem(getProgressKey(movieId), String(Math.floor(video.currentTime)));
+        }
+    }
+
+    function restoreMovieProgress(movieId, video) {
+        const saved = getSavedProgress(movieId);
+        if (saved < 5) return;
+        const applyProgress = () => {
+            if (!Number.isFinite(video.duration)) return;
+            if (saved < video.duration - 8) {
+                video.currentTime = saved;
+            }
+            video.removeEventListener('loadedmetadata', applyProgress);
+            video.removeEventListener('canplay', applyProgress);
+        };
+        video.addEventListener('loadedmetadata', applyProgress);
+        video.addEventListener('canplay', applyProgress);
+    }
+
+    function setupContinueWatching(movie, video) {
+        if (detailProgressCleanup) detailProgressCleanup();
+        const save = () => saveMovieProgress(movie.id, video);
+        const clear = () => localStorage.removeItem(getProgressKey(movie.id));
+        video.addEventListener('timeupdate', save);
+        video.addEventListener('pause', save);
+        video.addEventListener('ended', clear);
+        restoreMovieProgress(movie.id, video);
+        detailProgressCleanup = () => {
+            save();
+            video.removeEventListener('timeupdate', save);
+            video.removeEventListener('pause', save);
+            video.removeEventListener('ended', clear);
+            detailProgressCleanup = null;
+        };
+    }
 
     function showDetailPlayerControls() {
         const playerContainer = document.getElementById('playerContainer');
@@ -1075,8 +1135,10 @@
         document.title = `${movie.title} - 鑫艺影像馆`;
         setShareMeta(movie);
 
-        // 播放按钮
-        document.getElementById('playBtn').addEventListener('click', () => playMovie(movie));
+        const savedProgress = getSavedProgress(movie.id);
+        const playBtn = document.getElementById('playBtn');
+        playBtn.textContent = savedProgress >= 5 ? `▶ 继续播放 ${formatTime(savedProgress)}` : '▶ 立即播放';
+        playBtn.addEventListener('click', () => playMovie(movie));
         document.getElementById('shareMovieBtn').addEventListener('click', () => shareMovie(movie));
 
         // 推荐电影（同类型）
@@ -1266,6 +1328,7 @@
     // 加载视频
     const source = getMoviePlaybackSource(movie);
     window.player.load(source.url, source.type, source.fallbackUrl);
+    setupContinueWatching(movie, video);
 
     // 更新画质选项
     setTimeout(() => {
@@ -1381,6 +1444,7 @@
         document.body.classList.remove('modal-open');
         document.getElementById('playerContainer').classList.remove('controls-visible');
         window.clearTimeout(detailControlsTimer);
+        if (detailProgressCleanup) detailProgressCleanup();
         
         if (window.player) {
             window.player.pause();
@@ -1399,6 +1463,7 @@
     }
 
     function goToDetail(movieId) {
+        // Keep query-string detail URLs for static hosting refresh compatibility.
         window.location.href = `detail.html?id=${movieId}`;
     }
 

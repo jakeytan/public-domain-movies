@@ -155,6 +155,34 @@
             margin-left: 0.75rem;
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            width: min(24vw, 260px);
+            min-width: 180px;
+            height: 42px;
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 0 1rem;
+            font: inherit;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: #a8a8b2;
+        }
+
+        .search-input:focus {
+            border-color: rgba(229,9,20,0.75);
+            background: rgba(255,255,255,0.12);
+        }
+
         .share-toast {
             position: fixed;
             left: 50%;
@@ -437,6 +465,28 @@
             color: #a3a3a3;
         }
 
+        .continue-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-heading {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            font-weight: 750;
+        }
+
+        .continue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .progress-meta {
+            margin-top: 0.45rem;
+            color: #e5e5e5;
+            font-size: 0.72rem;
+        }
+
         .rail-arrow {
             position: absolute;
             top: 50%;
@@ -647,6 +697,17 @@
                 gap: 0.5rem;
                 flex: 0 0 auto;
             }
+            .nav-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .search-input {
+                order: -1;
+                width: min(52vw, 220px);
+                min-width: 150px;
+                height: 38px;
+                font-size: 0.82rem;
+            }
             .hero {
                 height: 76vh;
                 min-height: 520px;
@@ -783,6 +844,9 @@
             }
         }
     </style>
+</head>
+
+<body>
 
 <nav class="navbar">
     <div class="logo" onclick="window.location.href='index.html'">
@@ -792,8 +856,10 @@
             <div class="logo-tagline">经典电影 · 自由分享</div>
         </div>
     </div>
-    <div>
+    <div class="nav-actions">
+        <input class="search-input" id="movieSearchInput" type="search" placeholder="搜索电影" aria-label="搜索电影">
         <a class="nav-link" href="live.html">直播入口</a>
+        <a class="nav-link" href="favorites.html">我的收藏</a>
         <button class="nav-link share-link" id="shareSiteBtn" type="button">分享到朋友圈</button>
     </div>
 </nav>
@@ -801,7 +867,7 @@
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
 
 <section class="hero" id="heroSection">
-    <img class="hero-backdrop" id="heroBackdrop" src="" alt="backdrop">
+    <img class="hero-backdrop" id="heroBackdrop" src="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png" alt="The Circus backdrop" fetchpriority="high">
     <div class="hero-content">
         <span class="hero-rating" id="heroRating">⭐⭐⭐⭐⭐ 经典</span>
         <span class="hero-genre" id="heroGenre">剧情</span>
@@ -815,6 +881,10 @@
 </section>
 
 <main class="container">
+    <section class="continue-section" id="continueSection" hidden>
+        <h2 class="section-heading">继续观看</h2>
+        <div class="continue-grid" id="continueGrid"></div>
+    </section>
     <div class="genre-filter" id="genreFilterContainer">
         <button class="genre-btn active" data-genre="all">全部</button>
     </div>
@@ -891,9 +961,9 @@
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
-            hlsUrl: "",
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/the_circus.mp4",
-            fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/the-circus/index.m3u8",
+            videoUrl: "",
+            fallbackVideoUrl: ""
         },
         { 
             id: 2,
@@ -905,10 +975,10 @@
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/backdrops/all_quiet_backdrop.jpg?v=20260524", 
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/all_quiet_poster.jpg?v=20260524", 
-            hlsUrl: "",
-            videoUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_video.mp4", 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/all-quiet-on-the-western-front/index.m3u8",
+            videoUrl: "", 
             audioUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/quiet_west_front_audio.m4a", 
-            fallbackVideoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4"  
+            fallbackVideoUrl: ""  
         },
         { 
             id: 3,
@@ -920,7 +990,8 @@
             rating: "⭐⭐⭐⭐⭐ 8.5", 
             backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
             poster: "https://placehold.co/300x450?text=Metropolis&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/metropolis/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 4,
@@ -932,7 +1003,8 @@
             rating: "⭐⭐⭐⭐ 8.0", 
             backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
             poster: "https://placehold.co/300x450?text=Nosferatu&bg=111111&fg=ffffff", 
-            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/nosferatu/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 5,
@@ -944,7 +1016,8 @@
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
             poster: "https://placehold.co/300x450?text=Modern+Times&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/sintel/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/modern-times/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 6,
@@ -956,7 +1029,8 @@
             rating: "⭐⭐⭐⭐ 7.8", 
             backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
             poster: "https://placehold.co/300x450?text=Frankenstein&bg=111111&fg=ffffff", 
-            videoUrl: "https://media.w3.org/2010/05/bunny/trailer.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/frankenstein/index.m3u8",
+            videoUrl: "" 
         },
         { 
             id: 7,
@@ -968,7 +1042,8 @@
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
             poster: "https://placehold.co/300x450?text=The+General&bg=111111&fg=ffffff", 
-            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
+            hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/the-general/index.m3u8",
+            videoUrl: "" 
         }
     ];
 
@@ -979,6 +1054,9 @@
     let currentVideoPlayer = null;
     let currentModalMovie = null;
     let modalControlsTimer = null;
+    let modalProgressCleanup = null;
+    let activeGenre = 'all';
+    let activeSearchQuery = '';
     const movieRail = document.getElementById('moviesGrid');
     const movieScrollLeft = document.getElementById('moviesScrollLeft');
     const movieScrollRight = document.getElementById('moviesScrollRight');
@@ -991,6 +1069,7 @@
     const modalFullscreenBtn = document.getElementById('modalFullscreenBtn');
     const modalFavoriteBtn = document.getElementById('modalFavoriteBtn');
     const modalContainer = document.querySelector('.modal-container');
+    const movieSearchInput = document.getElementById('movieSearchInput');
 
     // 分类映射
     function getGenreLabel(genre) {
@@ -1015,6 +1094,69 @@
         };
     }
 
+	    function getProgressKey(movieId) {
+	        return `progress_${movieId}`;
+	    }
+
+	    function getSavedProgress(movieId) {
+	        const value = Number(localStorage.getItem(getProgressKey(movieId)) || 0);
+	        return Number.isFinite(value) ? value : 0;
+	    }
+
+	    function formatProgressTime(seconds) {
+	        const mins = Math.floor(seconds / 60);
+	        const secs = Math.floor(seconds % 60);
+	        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+	    }
+
+	    function saveMovieProgress(movieId, video) {
+	        if (!movieId || !Number.isFinite(video.currentTime)) return;
+	        if (Number.isFinite(video.duration) && video.duration > 0 && video.duration - video.currentTime < 12) {
+	            localStorage.removeItem(getProgressKey(movieId));
+	            renderContinueWatching();
+	            return;
+	        }
+	        if (video.currentTime >= 5) {
+	            localStorage.setItem(getProgressKey(movieId), String(Math.floor(video.currentTime)));
+	        }
+	    }
+
+	    function restoreMovieProgress(movieId, video) {
+	        const saved = getSavedProgress(movieId);
+	        if (saved < 5) return;
+	        const applyProgress = () => {
+	            if (!Number.isFinite(video.duration)) return;
+	            if (saved < video.duration - 8) {
+	                video.currentTime = saved;
+	            }
+	            video.removeEventListener('loadedmetadata', applyProgress);
+	            video.removeEventListener('canplay', applyProgress);
+	        };
+	        video.addEventListener('loadedmetadata', applyProgress);
+	        video.addEventListener('canplay', applyProgress);
+	    }
+
+	    function setupContinueWatching(movie, video) {
+	        if (modalProgressCleanup) modalProgressCleanup();
+	        const save = () => saveMovieProgress(movie.id, video);
+	        const clear = () => {
+	            localStorage.removeItem(getProgressKey(movie.id));
+	            renderContinueWatching();
+	        };
+	        video.addEventListener('timeupdate', save);
+	        video.addEventListener('pause', save);
+	        video.addEventListener('ended', clear);
+	        restoreMovieProgress(movie.id, video);
+	        modalProgressCleanup = () => {
+	            save();
+	            video.removeEventListener('timeupdate', save);
+	            video.removeEventListener('pause', save);
+	            video.removeEventListener('ended', clear);
+	            modalProgressCleanup = null;
+	            renderContinueWatching();
+	        };
+	    }
+
     // 渲染分类按钮
     function renderGenreFilter() {
         const genres = [...new Set(moviesData.map(m => m.genre))];
@@ -1032,21 +1174,40 @@
 
     // 按分类筛选
     function filterByGenre(genre) {
-        if (genre === 'all') {
-            currentMovies = [...moviesData];
-        } else {
-            currentMovies = moviesData.filter(m => m.genre === genre);
-        }
+        activeGenre = genre;
         // 更新按钮激活样式
         document.querySelectorAll('.genre-btn').forEach(btn => {
             btn.classList.remove('active');
             if (btn.getAttribute('data-genre') === genre) btn.classList.add('active');
             if (genre === 'all' && btn.getAttribute('data-genre') === 'all') btn.classList.add('active');
         });
+        applyMovieFilters();
+    }
+
+    function movieMatchesSearch(movie, query) {
+        if (!query) return true;
+        const haystack = [
+            movie.title,
+            movie.year,
+            movie.genre,
+            getGenreLabel(movie.genre),
+            movie.director,
+            movie.overview
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+    }
+
+    function applyMovieFilters() {
+        const query = activeSearchQuery.trim().toLowerCase();
+        currentMovies = moviesData.filter(movie => {
+            const matchesGenre = activeGenre === 'all' || movie.genre === activeGenre;
+            return matchesGenre && movieMatchesSearch(movie, query);
+        });
         renderMoviesGrid();
         renderHeroPosterRail();
         // 如果筛选后列表不为空，更新Hero为第一个电影
         if (currentMovies.length) setHeroMovie(currentMovies[0], 0);
+        updateMovieRailButtons();
         startHeroRotation();
     }
 
@@ -1064,8 +1225,8 @@
     }
 
     // 渲染电影网格
-    function renderMoviesGrid() {
-        const grid = document.getElementById('moviesGrid');
+	    function renderMoviesGrid() {
+	        const grid = document.getElementById('moviesGrid');
         if (!currentMovies.length) {
             grid.innerHTML = '<div class="loader">🎬 暂无此分类影片，我们会陆续添加更多经典。</div>';
             updateMovieRailButtons();
@@ -1086,19 +1247,54 @@
             `;
         });
         grid.innerHTML = html;
-        // 绑定卡片点击事件 - 跳转到详情页
+        // Cloudflare Pages/GitHub Pages keep this as detail.html?id=1.
+        // Avoid pseudo-static /movie/1 routes unless server rewrite rules are added.
         document.querySelectorAll('.movie-card').forEach(card => {
             const movieId = parseInt(card.getAttribute('data-movie-id'));
             card.addEventListener('click', () => {
                 window.location.href = `detail.html?id=${movieId}`;
             });
         });
-        movieRail.scrollLeft = 0;
-        updateMovieRailButtons();
-    }
+	        movieRail.scrollLeft = 0;
+	        updateMovieRailButtons();
+	    }
+
+	    function renderContinueWatching() {
+	        const section = document.getElementById('continueSection');
+	        const grid = document.getElementById('continueGrid');
+	        const movies = moviesData
+	            .map(movie => ({ movie, progress: getSavedProgress(movie.id) }))
+	            .filter(item => item.progress >= 5);
+
+	        section.hidden = movies.length === 0;
+	        if (!movies.length) {
+	            grid.innerHTML = '';
+	            return;
+	        }
+
+	        grid.innerHTML = movies.map(({ movie, progress }) => `
+	            <div class="movie-card continue-card" data-continue-id="${movie.id}">
+	                <div class="poster-wrapper">
+	                    <img class="poster" src="${movie.poster}" alt="${movie.title}" loading="lazy" onerror="this.src='https://placehold.co/300x450?text=Classic&bg=111111&fg=ffffff'">
+	                </div>
+	                <div class="movie-info">
+	                    <div class="movie-title">${movie.title}</div>
+	                    <div class="movie-year">${movie.year} · ${getGenreLabel(movie.genre)}</div>
+	                    <div class="progress-meta">已观看到 ${formatProgressTime(progress)}</div>
+	                </div>
+	            </div>
+	        `).join('');
+
+	        grid.querySelectorAll('.continue-card').forEach(card => {
+	            const movieId = parseInt(card.getAttribute('data-continue-id'));
+	            const movie = moviesData.find(item => item.id === movieId);
+	            card.addEventListener('click', () => playMovie(movie));
+	        });
+	    }
 
     function goToMovieDetail(movie = currentHeroMovie) {
         if (!movie) return;
+        // Keep query-string detail URLs for static hosting refresh compatibility.
         window.location.href = `detail.html?id=${movie.id}`;
     }
 
@@ -1254,10 +1450,14 @@
     }
 
     movieScrollLeft.addEventListener('click', () => scrollMovieRail(-1));
-    movieScrollRight.addEventListener('click', () => scrollMovieRail(1));
-    movieRail.addEventListener('scroll', updateMovieRailButtons, { passive: true });
-    window.addEventListener('resize', updateMovieRailButtons);
-    heroSection.addEventListener('click', () => goToMovieDetail());
+	    movieScrollRight.addEventListener('click', () => scrollMovieRail(1));
+	    movieRail.addEventListener('scroll', updateMovieRailButtons, { passive: true });
+	    window.addEventListener('resize', updateMovieRailButtons);
+	    movieSearchInput.addEventListener('input', (event) => {
+	        activeSearchQuery = event.target.value;
+	        applyMovieFilters();
+	    });
+	    heroSection.addEventListener('click', () => goToMovieDetail());
     heroSection.addEventListener('mouseenter', () => window.clearInterval(heroRotationTimer));
     heroSection.addEventListener('mouseleave', startHeroRotation);
 
@@ -1310,9 +1510,10 @@
             });
         }
         
-        const source = getMoviePlaybackSource(movie);
-        window.indexPlayer.load(source.url, source.type, source.fallbackUrl);
-    }
+	        const source = getMoviePlaybackSource(movie);
+	        window.indexPlayer.load(source.url, source.type, source.fallbackUrl);
+	        setupContinueWatching(movie, video);
+	    }
 
     // 关闭模态框
     function closeModal() {
@@ -1321,9 +1522,10 @@
         document.body.classList.remove('modal-open');
         currentModalMovie = null;
         modalContainer.classList.remove('controls-visible');
-        window.clearTimeout(modalControlsTimer);
-        
-        if (window.indexPlayer) {
+	        window.clearTimeout(modalControlsTimer);
+	        if (modalProgressCleanup) modalProgressCleanup();
+	        
+	        if (window.indexPlayer) {
             window.indexPlayer.pause();
             window.indexPlayer.dispose();
             window.indexPlayer = null;
@@ -1333,8 +1535,9 @@
     // 初始化
     function init() {
         renderGenreFilter();
-        currentMovies = [...moviesData];
-        renderMoviesGrid();
+	        currentMovies = [...moviesData];
+        renderContinueWatching();
+        applyMovieFilters();
         renderHeroPosterRail();
         setHeroMovie(moviesData[0], 0);
         startHeroRotation();
