@@ -891,7 +891,7 @@
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/all_quiet_poster.jpg?v=20260524", 
             hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/videos/west_no_war/index.m3u8",
             videoUrl: "", 
-            subtitleUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/subtitles/west_no_war.vtt",
+            subtitleUrl: "subtitles/west_no_war.vtt",
             fallbackVideoUrl: ""  
         },
         { 
@@ -1201,6 +1201,46 @@
         subtitleTrack.srclang = movie.subtitleLang || 'zh';
         subtitleTrack.src = movie.subtitleUrl;
         subtitleTrack.default = true;
+
+        // Add listeners to detect load success/failure and allow retry
+        let tried = 0;
+        const maxTries = 2;
+
+        const onTrackLoad = () => {
+            try {
+                // Make track cues visible
+                if (subtitleTrack.track) subtitleTrack.track.mode = 'showing';
+                hidePlayerStatus();
+            } catch (e) {
+                console.warn('Subtitle load handling error', e);
+            }
+        };
+
+        const onTrackError = () => {
+            tried += 1;
+            console.warn('Subtitle failed to load:', subtitleTrack.src);
+            showPlayerStatus('error', '字幕加载失败，点击重试');
+            const statusEl = document.getElementById('playerStatus');
+            statusEl.style.cursor = 'pointer';
+            statusEl.onclick = () => {
+                statusEl.style.cursor = '';
+                statusEl.onclick = null;
+                hidePlayerStatus();
+                if (tried <= maxTries) {
+                    // try cache-busted reload
+                    subtitleTrack.src = movie.subtitleUrl + (movie.subtitleUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+                    // re-attach to force reload
+                    subtitleTrack.remove();
+                    video.appendChild(subtitleTrack);
+                } else {
+                    showPlayerStatus('error', '字幕不可用，请检查网络或 CORS 配置');
+                }
+            };
+        };
+
+        subtitleTrack.addEventListener('load', onTrackLoad);
+        subtitleTrack.addEventListener('error', onTrackError);
+
         video.appendChild(subtitleTrack);
     }
 
@@ -1338,8 +1378,49 @@
 
     // 更新画质选项
     renderQualityMenu(window.player.getQualityLevels());
-}
 
+    // 如果页面打开时请求自动播放，则尝试静音自动播放并提供取消静音按钮
+    if (window._autoPlayOnLoad) {
+        try {
+            showPlayerStatus('loading', '正在尝试自动播放（静音）...');
+            // ensure muted to increase autoplay success
+            video.muted = true;
+            window.player.play().then(() => {
+                hidePlayerStatus();
+                // show unmute button
+                const playerContainer = document.getElementById('playerContainer');
+                const existing = document.getElementById('unmuteBtn');
+                if (!existing && playerContainer) {
+                    const btn = document.createElement('button');
+                    btn.id = 'unmuteBtn';
+                    btn.className = 'modal-control-btn';
+                    btn.textContent = '取消静音';
+                    btn.addEventListener('click', () => {
+                        video.muted = false;
+                        btn.remove();
+                    });
+                    playerContainer.appendChild(btn);
+                }
+            }).catch((err) => {
+                console.warn('Autoplay blocked', err);
+                showPlayerStatus('error', '自动播放被阻止，点击播放以开始');
+                const statusEl = document.getElementById('playerStatus');
+                statusEl.style.cursor = 'pointer';
+                statusEl.onclick = () => {
+                    statusEl.style.cursor = '';
+                    statusEl.onclick = null;
+                    hidePlayerStatus();
+                    // User gesture: try play unmuted
+                    video.muted = false;
+                    window.player.play().catch(e => console.warn('Play failed', e));
+                };
+            });
+        } catch (e) {
+            console.warn('自动播放尝试出错', e);
+        }
+    }
+
+}
 function renderQualityMenu(qualities = []) {
     const qualityMenu = document.getElementById('qualityMenu');
     if (!qualityMenu) return;
@@ -1485,6 +1566,22 @@ function renderQualityMenu(qualities = []) {
 
     // 初始化
     renderDetail();
+    // 自动尝试在页面打开时播放（可被浏览器阻止）
+    (function tryAutoPlayOnLoad() {
+        const movie = getCurrentMovie();
+        if (!movie) return;
+        // mark auto-play intent for playMovie
+        window._autoPlayOnLoad = true;
+        setTimeout(() => {
+            try {
+                playMovie(movie);
+            } catch (e) {
+                console.warn('Auto play failed to start', e);
+            }
+            // clear flag shortly after attempting
+            setTimeout(() => { window._autoPlayOnLoad = false; }, 2000);
+        }, 500);
+    })();
 </script>
 
 </body>
