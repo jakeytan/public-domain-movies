@@ -438,7 +438,7 @@
     <section class="player-section" aria-label="直播影片">
         <div class="player-card">
             <div class="video-wrapper">
-                <video id="livePlayer" playsinline></video>
+                <video id="livePlayer" playsinline crossorigin="anonymous"></video>
                 <div class="live-window-badge" aria-label="直播中"></div>
                 <div class="player-status" id="liveStatus" aria-live="polite"></div>
             </div>
@@ -497,26 +497,29 @@
     </section>
 
 </main>
-<script src="player.js"></script>
+<script src="player.js?v=20260531-decode-fix"></script>
 <script>
     const liveChannels = [
         {
             id: 1,
             name: '经典电影频道',
             description: '经典电影实时播放',
-            stream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+            stream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+            fallbackStream: 'https://test-streams.mux.dev/pts_shift/master.m3u8'
         },
         {
             id: 2,
             name: '艺术大片频道',
             description: '沉浸式艺术影片实时连播',
-            stream: 'https://test-streams.mux.dev/pts_shift/master.m3u8'
+            stream: 'https://test-streams.mux.dev/pts_shift/master.m3u8',
+            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
         },
         {
             id: 3,
             name: '纪录片频道',
             description: '纪录片夜间直播',
-            stream: 'https://test-streams.mux.dev/4v3p6f8w/master.m3u8'
+            stream: 'https://test-streams.mux.dev/4v3p6f8w/master.m3u8',
+            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
         }
     ];
 
@@ -595,7 +598,7 @@
             setLiveStatus('已暂停');
             updateControlState();
         });
-        streamPlayer.on('error', () => setLiveStatus('直播源异常，正在重试...'));
+        streamPlayer.on('error', () => setLiveStatus('直播源异常，已尝试备用源，请稍候...'));
         streamPlayer.on('qualitychange', data => {
             setLiveStatus(`已切换至 ${data.height || '自动'} 画质`);
         });
@@ -682,12 +685,12 @@
             card.classList.toggle('active', Number(card.getAttribute('data-id')) === channel.id);
         });
         updateFavoriteButton();
-        loadStream(channel.stream);
+        loadStream(channel.stream, channel.fallbackStream);
     }
 
-    function loadStream(url) {
+    function loadStream(url, fallbackUrl = '') {
         if (!streamPlayer) return;
-        streamPlayer.load(url, 'hls');
+        streamPlayer.load(url, 'hls', fallbackUrl);
         setLiveStatus('直播源加载中...');
     }
 

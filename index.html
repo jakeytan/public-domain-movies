@@ -909,7 +909,7 @@
     <div class="modal-container">
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="video-wrapper">
-            <video id="videoPlayer" playsinline webkit-playsinline preload="metadata"></video>
+            <video id="videoPlayer" playsinline webkit-playsinline preload="metadata" crossorigin="anonymous"></video>
         </div>
         <div class="modal-player-controls" aria-label="推荐影片播放控制">
             <button class="modal-control-btn primary" id="modalPlayBtn" type="button" aria-label="播放" title="播放">
@@ -947,7 +947,7 @@
     </div>
 </div>
 
-<script src="player.js"></script>
+<script src="player.js?v=20260531-decode-fix"></script>
 <script>
     // ---------- 电影数据（可直接增加或修改）----------
     const moviesData = [
@@ -1076,20 +1076,22 @@
         return map[genre] || genre;
     }
 
+    const DEFAULT_FALLBACK_VIDEO = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+
     function getMoviePlaybackSource(movie) {
         const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();
         if (hlsUrl) {
             return {
                 url: hlsUrl,
                 type: 'hls',
-                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || ''
+                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || DEFAULT_FALLBACK_VIDEO
             };
         }
 
         return {
             url: movie.videoUrl,
             type: 'auto',
-            fallbackUrl: movie.fallbackVideoUrl || ''
+            fallbackUrl: movie.fallbackVideoUrl || DEFAULT_FALLBACK_VIDEO
         };
     }
 

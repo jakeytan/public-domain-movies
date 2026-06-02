@@ -172,6 +172,14 @@ player.on('error', (error) => console.error('错误:', error));
 
 生产环境不要把超大 MP4 作为网页主播放地址。MP4 即使支持 Range，也很难解决移动端耗流量、无法自适应码率、大片 seek 卡顿和 CDN/回源压力问题。主片源统一转成多码率 HLS 后上传到 R2/CDN，再在电影数据里填写 `hlsUrl`，`videoUrl` 保持空字符串。
 
+上传前确认 HLS 是 master playlist，而不是只有 `#EXTINF` 分片列表的单路 media playlist。单路清单没有 `#EXT-X-STREAM-INF`、`BANDWIDTH`、`RESOLUTION` 信息时，播放器无法提供真实画质选择，浏览器也更容易直接暴露编码兼容问题。
+
+网页兼容转码目标：
+
+- 视频：H.264 `yuv420p`，720p/480p/360p 多码率，25fps，GOP 约 2 秒
+- 音频：AAC-LC，双声道，48kHz
+- 避免直接上传 1080p/50fps/High profile 单码率 HLS；这类源可能触发 `DECODER_ERROR_NOT_SUPPORTED`
+
 推荐链路：
 
 ```text

@@ -828,7 +828,7 @@
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="player-container" id="playerContainer">
             <div class="video-wrapper">
-                <video id="videoPlayer" playsinline webkit-playsinline preload="metadata"></video>
+                <video id="videoPlayer" playsinline webkit-playsinline preload="metadata" crossorigin="anonymous"></video>
                 <div class="player-status" id="playerStatus"></div>
             </div>
             <!-- 高级控制条 -->
@@ -859,7 +859,7 @@
     </div>
 </div>
 
-<script src="player.js"></script>
+<script src="player.js?v=20260531-decode-fix"></script>
 <script>
     // 电影数据（与主页同步）
     const moviesData = [
@@ -979,20 +979,22 @@
         return movie || moviesData[0];
     }
 
+    const DEFAULT_FALLBACK_VIDEO = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+
     function getMoviePlaybackSource(movie) {
         const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();
         if (hlsUrl) {
             return {
                 url: hlsUrl,
                 type: 'hls',
-                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || ''
+                fallbackUrl: movie.videoUrl || movie.fallbackVideoUrl || DEFAULT_FALLBACK_VIDEO
             };
         }
 
         return {
             url: movie.videoUrl,
             type: 'auto',
-            fallbackUrl: movie.fallbackVideoUrl || ''
+            fallbackUrl: movie.fallbackVideoUrl || DEFAULT_FALLBACK_VIDEO
         };
     }
 
@@ -1308,7 +1310,7 @@
 
         window.player.on('error', (error) => {
             console.error('播放错误:', error);
-            showPlayerStatus('error', '播放失败，点击重试');
+            showPlayerStatus('error', error?.message || '播放失败，点击重试');
             const statusEl = document.getElementById('playerStatus');
             statusEl.style.cursor = 'pointer';
             statusEl.onclick = () => {
@@ -1320,7 +1322,12 @@
         });
 
         window.player.on('qualitychange', (data) => {
-            console.log(`切换画质: ${data.height}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
+            if (!data?.height && !data?.bitrate) return;
+            console.log(`切换画质: ${data.height || 'Auto'}p (${(data.bitrate / 1000000).toFixed(1)}Mbps)`);
+        });
+
+        window.player.on('qualitylevels', (qualities) => {
+            renderQualityMenu(qualities);
         });
     }
 
@@ -1330,17 +1337,27 @@
     setupContinueWatching(movie, video);
 
     // 更新画质选项
-    setTimeout(() => {
-        const qualities = window.player.getQualityLevels();
-        if (qualities.length > 0) {
-            const qualityMenu = document.getElementById('qualityMenu');
-            qualityMenu.innerHTML = qualities.map((q, idx) => `
-                <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
-                    ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
-                </div>
-            `).join('');
-        }
-    }, 500);
+    renderQualityMenu(window.player.getQualityLevels());
+}
+
+function renderQualityMenu(qualities = []) {
+    const qualityMenu = document.getElementById('qualityMenu');
+    if (!qualityMenu) return;
+
+    if (!qualities.length) {
+        qualityMenu.innerHTML = '<div class="menu-item">自动</div>';
+        return;
+    }
+
+    qualityMenu.innerHTML = qualities.map(q => {
+        const label = q.height ? `${q.height}p` : (q.name || '自动');
+        const bitrate = q.bitrate ? ` (${(q.bitrate / 1000000).toFixed(1)}Mbps)` : '';
+        return `
+            <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
+                ${label}${bitrate}
+            </div>
+        `;
+    }).join('');
 }
 
     // 播放器控制
@@ -1400,15 +1417,7 @@
         });
         
         // 获取并显示画质选项
-        const qualities = player.getQualityLevels();
-        if (qualities.length > 0) {
-            const qualityMenu = document.getElementById('qualityMenu');
-            qualityMenu.innerHTML = qualities.map((q, idx) => `
-                <div class="menu-item" onclick="window.player.setQuality(${q.level}); this.parentElement.classList.remove('active');">
-                    ${q.height ? q.height + 'p' : 'Auto'} (${(q.bitrate / 1000000).toFixed(1)}Mbps)
-                </div>
-            `).join('');
-        }
+        renderQualityMenu(player.getQualityLevels());
         
         // 关闭其他菜单
         document.addEventListener('click', (e) => {
@@ -1434,6 +1443,8 @@
     function hidePlayerStatus() {
         const status = document.getElementById('playerStatus');
         status.classList.remove('show');
+        status.style.cursor = '';
+        status.onclick = null;
     }
 
     function closeModal() {

@@ -6,6 +6,9 @@
 class StreamPlayer {
     constructor(videoElement, options = {}) {
         this.video = videoElement;
+        if (!this.video.crossOrigin) {
+            this.video.crossOrigin = 'anonymous';
+        }
         this.options = {
             autoplay: options.autoplay || false,
             preload: options.preload || 'metadata',
@@ -21,6 +24,9 @@ class StreamPlayer {
                 maxAutoBitrate: 5000000,
                 startLevel: -1,
                 emeEnabled: false,
+                xhrSetup: (xhr) => {
+                    xhr.withCredentials = false;
+                },
                 ...options.hlsConfig
             },
             ...options
@@ -37,7 +43,10 @@ class StreamPlayer {
         this.listeners = {};
         this.currentUrl = '';
         this.fallbackUrl = '';
+        this.currentSource = null;
         this.hasTriedFallback = false;
+        this.mediaRecoverAttempts = 0;
+        this.hasEmittedFatalError = false;
         
         this.init();
     }
@@ -63,6 +72,7 @@ class StreamPlayer {
         // HLS 事件监听
         this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
             this.emit('ready');
+            this.emit('qualitylevels', this.getQualityLevels());
             if (this.options.autoplay) this.video.play();
         });
 
@@ -71,8 +81,8 @@ class StreamPlayer {
             const levelInfo = this.hls.levels[data.level];
             this.emit('qualitychange', {
                 level: data.level,
-                bitrate: levelInfo.bitrate,
-                height: levelInfo.height
+                bitrate: levelInfo?.bitrate || 0,
+                height: levelInfo?.height || 0
             });
         });
 
@@ -87,14 +97,24 @@ class StreamPlayer {
         });
 
         this.hls.on(Hls.Events.ERROR, (event, data) => {
-            console.error('HLS Error:', data);
+            const normalizedError = this.normalizePlaybackError(data);
+            if (!this.hasEmittedFatalError) {
+                console.error('HLS Error:', data);
+            }
+
+            if (this.isUnsupportedPlaybackError(data)) {
+                this.failPlayback(normalizedError);
+                return;
+            }
+
             if (data.fatal) {
                 if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
                     this.hls.startLoad();
                     return;
                 }
 
-                if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                if (data.type === Hls.ErrorTypes.MEDIA_ERROR && this.mediaRecoverAttempts < 2) {
+                    this.mediaRecoverAttempts += 1;
                     this.hls.recoverMediaError();
                     return;
                 }
@@ -105,7 +125,7 @@ class StreamPlayer {
                     return;
                 }
 
-                this.emit('error', data);
+                this.failPlayback(normalizedError);
             }
         });
 
@@ -176,10 +196,10 @@ class StreamPlayer {
                 }
                 return;
             }
-            this.emit('error', {
+            this.failPlayback(this.normalizePlaybackError({
                 code: error?.code,
                 message: error?.message
-            });
+            }));
         };
 
         this._onOnline = () => this.emit('online');
@@ -208,7 +228,10 @@ class StreamPlayer {
     load(url, type = 'hls', fallbackUrl = '') {
         this.currentUrl = url;
         this.fallbackUrl = fallbackUrl;
+        this.currentSource = { url, type, fallbackUrl };
         this.hasTriedFallback = false;
+        this.mediaRecoverAttempts = 0;
+        this.hasEmittedFatalError = false;
         
         // Reset video element state before loading new source
         this.video.pause();
@@ -269,12 +292,18 @@ class StreamPlayer {
 
     getQualityLevels() {
         if (!this.hls || !this.hls.levels) return [];
-        return this.hls.levels.map((level, idx) => ({
-            level: idx,
-            bitrate: level.bitrate,
-            height: level.height,
-            width: level.width
-        }));
+        const levels = this.hls.levels
+            .map((level, idx) => ({
+                level: idx,
+                bitrate: level.bitrate || level.averageBitrate || 0,
+                height: level.height || 0,
+                width: level.width || 0,
+                name: level.name || ''
+            }))
+            .filter(level => level.bitrate > 0 || level.height > 0 || level.name);
+
+        if (levels.length <= 1) return [];
+        return levels;
     }
 
     setQuality(level) {
@@ -301,6 +330,63 @@ class StreamPlayer {
     emit(event, data) {
         if (!this.listeners[event]) return;
         this.listeners[event].forEach(cb => cb(data));
+    }
+
+    normalizePlaybackError(error = {}) {
+        const rawMessage = [
+            error.message,
+            error.details,
+            error.reason,
+            error.error?.message,
+            error.error?.name
+        ].filter(Boolean).join(' ');
+        const isUnsupported = this.isUnsupportedPlaybackError(error);
+        const isNetworkError = /network|404|not found|failed to load|fetch error/i.test(rawMessage);
+
+        return {
+            ...error,
+            code: error.code,
+            message: isUnsupported
+                ? '当前视频编码不受此浏览器支持，请用网页兼容参数重新转码后上传。'
+                : (isNetworkError
+                    ? '当前播放源不可用，已尝试备用源；如仍无法播放请刷新或切换影片。'
+                    : (rawMessage || '视频播放失败。'))
+        };
+    }
+
+    isUnsupportedPlaybackError(error = {}) {
+        const rawMessage = [
+            error.message,
+            error.details,
+            error.reason,
+            error.error?.message,
+            error.error?.name
+        ].filter(Boolean).join(' ');
+
+        return /unsupported|not supported|DECODER_ERROR_NOT_SUPPORTED|UnsupportedConfig|bufferAppendError|NotSupportedError/i.test(rawMessage);
+    }
+
+    failPlayback(error) {
+        if (this.hasEmittedFatalError && (!this.currentSource?.fallbackUrl || this.hasTriedFallback)) return;
+        this.isBuffering = false;
+
+        if (this.hls) {
+            this.hls.stopLoad();
+            this.hls.detachMedia();
+        }
+
+        this.video.pause();
+        this.video.removeAttribute('src');
+        this.video.load();
+
+        if (this.currentSource?.fallbackUrl && !this.hasTriedFallback && this.video.currentSrc !== this.currentSource.fallbackUrl) {
+            this.hasTriedFallback = true;
+            this.load(this.currentSource.fallbackUrl, 'auto', '');
+            return;
+        }
+
+        this.hasEmittedFatalError = true;
+        this.emit('error', error);
     }
 
     dispose() {
