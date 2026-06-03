@@ -34,6 +34,11 @@
         :root {
             --movie-poster-aspect: 941 / 1672;
             --movie-backdrop-aspect: 1448 / 1086;
+            --subtitle-font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            --subtitle-font-size: 1rem;
+            --subtitle-line-height: 0.95;
+            --subtitle-bottom: 8%;
+            --subtitle-offset: 0px;
         }
 
         /* 导航栏 */
@@ -441,7 +446,31 @@
 
         /* 字幕样式 */
         video::cue {
-            line-height: 0.95;
+            color: #fff;
+            font-family: var(--subtitle-font-family);
+            font-size: var(--subtitle-font-size);
+            line-height: var(--subtitle-line-height);
+            white-space: pre-wrap;
+            text-shadow: 0 0 12px rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.35);
+            padding: 0.08em 0.18em;
+            transform: translateY(var(--subtitle-offset));
+        }
+        video::-webkit-media-text-track-display-container {
+            bottom: var(--subtitle-bottom);
+        }
+
+        .menu-section {
+            padding: 10px 15px 6px;
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .menu-item.selected {
+            background: rgba(255,255,255,0.12);
         }
 
         /* 播放器控制条 */
@@ -833,7 +862,7 @@
         <button class="close-modal" id="closeModalBtn">✕</button>
         <div class="player-container" id="playerContainer">
             <div class="video-wrapper">
-                <video id="videoPlayer" playsinline webkit-playsinline preload="metadata" crossorigin="anonymous"></video>
+                <video id="videoPlayer" playsinline webkit-playsinline preload="metadata" crossorigin="anonymous" controlsList="nodownload"></video>
                 <div class="player-status" id="playerStatus"></div>
             </div>
             <!-- 高级控制条 -->
@@ -852,9 +881,13 @@
                     <div style="flex: 1;"></div>
                     <div class="controls-left">
                         <button class="player-btn" id="speedBtn" title="播放速度">1x</button>
-                        <button class="player-btn" id="qualityBtn" title="画质">
+                        <button class="player-btn" id="qualityBtn" title="分辨率">
                             🎬
                             <div class="settings-menu" id="qualityMenu"></div>
+                        </button>
+                        <button class="player-btn" id="subtitleBtn" title="字幕设置">
+                            字
+                            <div class="settings-menu" id="subtitleMenu"></div>
                         </button>
                         <button class="player-btn" id="fullscreenBtn" title="全屏">⛶</button>
                     </div>
@@ -1002,6 +1035,255 @@
             fallbackUrl: movie.fallbackVideoUrl || DEFAULT_FALLBACK_VIDEO
         };
     }
+
+    window.subtitleTracksMeta = [];
+    window.subtitleTracksMovieId = null;
+
+    function getSubtitleTracks(movie) {
+        if (!movie) return [];
+        if (window.subtitleTracksMovieId === movie.id && Array.isArray(window.subtitleTracksMeta) && window.subtitleTracksMeta.length) {
+            return window.subtitleTracksMeta;
+        }
+        if (Array.isArray(movie.subtitleTracks) && movie.subtitleTracks.length) {
+            return movie.subtitleTracks.map(track => ({
+                label: track.label || (track.srclang === 'zh' ? '中文' : track.srclang),
+                srclang: track.srclang || 'zh',
+                src: track.src,
+                default: track.default !== false
+            }));
+        }
+        if (movie.subtitleUrl) {
+            return [{
+                label: movie.subtitleLabel || '中文字幕',
+                srclang: movie.subtitleLang || 'zh',
+                src: movie.subtitleUrl,
+                default: true
+            }];
+        }
+        return [];
+    }
+
+    async function resolveSubtitleTracks(movie) {
+        if (!movie) return [];
+        if (window.subtitleTracksMovieId === movie.id && Array.isArray(window.subtitleTracksMeta) && window.subtitleTracksMeta.length) {
+            return window.subtitleTracksMeta;
+        }
+
+        if (Array.isArray(movie.subtitleTracks) && movie.subtitleTracks.length) {
+            window.subtitleTracksMeta = movie.subtitleTracks.map(track => ({
+                label: track.label || (track.srclang === 'zh' ? '中文' : track.srclang),
+                srclang: track.srclang || 'zh',
+                src: track.src,
+                default: track.default !== false
+            }));
+            window.subtitleTracksMovieId = movie.id;
+            return window.subtitleTracksMeta;
+        }
+
+        if (!movie.subtitleUrl) {
+            window.subtitleTracksMeta = [];
+            window.subtitleTracksMovieId = movie.id;
+            return [];
+        }
+
+        try {
+            const response = await fetch(movie.subtitleUrl);
+            if (!response.ok) throw new Error('字幕加载失败');
+            const text = await response.text();
+            const tracks = parseBilingualVttTracks(text);
+            if (tracks.length) {
+                window.subtitleTracksMeta = tracks;
+                window.subtitleTracksMovieId = movie.id;
+                return tracks;
+            }
+        } catch (error) {
+            console.warn('Resolve subtitle tracks failed:', error);
+        }
+
+        window.subtitleTracksMeta = [{
+            label: movie.subtitleLabel || '中文字幕',
+            srclang: movie.subtitleLang || 'zh',
+            src: movie.subtitleUrl,
+            default: true
+        }];
+        window.subtitleTracksMovieId = movie.id;
+        return window.subtitleTracksMeta;
+    }
+
+    function parseBilingualVttTracks(text) {
+        const cues = [];
+        const lines = text.replace(/\r/g, '').split('\n');
+        let i = 0;
+
+        while (i < lines.length) {
+            const line = lines[i].trim();
+            if (!line || line === 'WEBVTT') {
+                i += 1;
+                continue;
+            }
+
+            let identifier = null;
+            let timeLine = line;
+            if (!timeLine.includes('-->')) {
+                identifier = timeLine;
+                i += 1;
+                timeLine = lines[i] ? lines[i].trim() : '';
+            }
+
+            if (!timeLine.includes('-->')) {
+                i += 1;
+                continue;
+            }
+
+            const [start, end] = timeLine.split('-->').map(s => s.trim());
+            i += 1;
+            const textLines = [];
+            while (i < lines.length && lines[i].trim()) {
+                textLines.push(lines[i]);
+                i += 1;
+            }
+            cues.push({ identifier, start, end, text: textLines.join('\n') });
+        }
+
+        const groups = cues.reduce((acc, cue) => {
+            const key = `${cue.start}|${cue.end}`;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(cue);
+            return acc;
+        }, {});
+
+        const chineseCues = [];
+        const englishCues = [];
+
+        const detectLang = (content) => {
+            if (/[*\u4e00-\u9fff]/.test(content)) return 'zh';
+            if (/[A-Za-z]/.test(content)) return 'en';
+            return 'unknown';
+        };
+
+        Object.values(groups).forEach(group => {
+            const zh = group.find(c => detectLang(c.text) === 'zh');
+            const en = group.find(c => detectLang(c.text) === 'en');
+
+            if (zh && en) {
+                chineseCues.push(zh);
+                englishCues.push(en);
+                return;
+            }
+
+            if (group.length === 1) {
+                const parts = group[0].text.split(/\n+/).map(line => line.trim()).filter(Boolean);
+                const zhLine = parts.find(line => /[\u4e00-\u9fff]/.test(line));
+                const enLine = parts.find(line => /[A-Za-z]/.test(line));
+                if (zhLine && enLine) {
+                    chineseCues.push({ ...group[0], text: zhLine });
+                    englishCues.push({ ...group[0], text: enLine });
+                    return;
+                }
+            }
+
+            if (zh) {
+                chineseCues.push(zh);
+            }
+            if (en) {
+                englishCues.push(en);
+            }
+            if (!zh && !en && group[0]) {
+                chineseCues.push(group[0]);
+                englishCues.push(group[0]);
+            }
+        });
+
+        const buildVtt = (cuesList) => {
+            return ['WEBVTT', '']
+                .concat(cuesList.map(cue => `${cue.start} --> ${cue.end}\n${cue.text}`))
+                .join('\n\n');
+        };
+
+        const tracks = [];
+        if (chineseCues.length) {
+            const blob = new Blob([buildVtt(chineseCues)], { type: 'text/vtt' });
+            tracks.push({ label: '中文', srclang: 'zh', src: URL.createObjectURL(blob), default: true });
+        }
+        if (englishCues.length) {
+            const blob = new Blob([buildVtt(englishCues)], { type: 'text/vtt' });
+            tracks.push({ label: 'English', srclang: 'en', src: URL.createObjectURL(blob), default: chineseCues.length === 0 });
+        }
+        return tracks;
+    }
+
+    window.subtitleStyleState = {
+        fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
+        fontSize: '1rem',
+        position: 'bottom',
+        visible: true
+    };
+
+    function updateSubtitleStyleVars() {
+        const root = document.documentElement;
+        root.style.setProperty('--subtitle-font-family', window.subtitleStyleState.fontFamily);
+        root.style.setProperty('--subtitle-font-size', window.subtitleStyleState.fontSize);
+        root.style.setProperty('--subtitle-line-height', '0.95');
+
+        let bottomValue = '8%';
+        let offsetValue = '0px';
+        if (window.subtitleStyleState.position === 'top') {
+            bottomValue = '70%';
+            offsetValue = '-16px';
+        } else if (window.subtitleStyleState.position === 'middle') {
+            bottomValue = '35%';
+            offsetValue = '-8px';
+        }
+
+        root.style.setProperty('--subtitle-bottom', bottomValue);
+        root.style.setProperty('--subtitle-offset', offsetValue);
+    }
+
+    window.currentSubtitleTrackIndex = 0;
+
+    window.selectSubtitleTrack = function(index) {
+        const video = document.getElementById('videoPlayer');
+        const tracks = video?.textTracks || [];
+        if (!tracks.length || index < 0 || index >= tracks.length) return;
+
+        tracks.forEach((track, i) => {
+            track.mode = i === index ? 'showing' : 'disabled';
+        });
+        window.currentSubtitleTrackIndex = index;
+        window.subtitleStyleState.visible = true;
+        renderSubtitleMenu();
+    };
+
+    window.setSubtitleVisibility = function(enabled) {
+        const video = document.getElementById('videoPlayer');
+        const tracks = video?.textTracks || [];
+        if (!tracks.length) return;
+
+        const track = tracks[window.currentSubtitleTrackIndex] || tracks[0];
+        track.mode = enabled ? 'showing' : 'disabled';
+        window.subtitleStyleState.visible = enabled;
+        renderSubtitleMenu();
+    };
+
+    window.setSubtitleFontFamily = function(fontFamily) {
+        window.subtitleStyleState.fontFamily = fontFamily;
+        updateSubtitleStyleVars();
+        renderSubtitleMenu();
+    };
+
+    window.setSubtitleFontSize = function(fontSize) {
+        window.subtitleStyleState.fontSize = fontSize;
+        updateSubtitleStyleVars();
+        renderSubtitleMenu();
+    };
+
+    window.setSubtitlePosition = function(position) {
+        window.subtitleStyleState.position = position;
+        updateSubtitleStyleVars();
+        renderSubtitleMenu();
+    };
+
+    updateSubtitleStyleVars();
 
     function showShareToast(message) {
         const toast = document.getElementById('shareToast');
@@ -1168,7 +1450,7 @@
         </div>
     `).join('');
 }
-    function playMovie(movie) {
+    async function playMovie(movie) {
     const modal = document.getElementById('videoModal');
     const video = document.getElementById('videoPlayer');
     modal.classList.add('active');
@@ -1199,54 +1481,56 @@
     }
 
     video.querySelectorAll('track').forEach(track => track.remove());
-    if (movie.subtitleUrl) {
-        const subtitleTrack = document.createElement('track');
-        subtitleTrack.kind = 'subtitles';
-        subtitleTrack.label = movie.subtitleLabel || '中文字幕';
-        subtitleTrack.srclang = movie.subtitleLang || 'zh';
-        subtitleTrack.src = movie.subtitleUrl;
-        subtitleTrack.default = true;
+    const subtitleTracks = await resolveSubtitleTracks(movie);
+    window.currentSubtitleTrackIndex = subtitleTracks.findIndex(track => track.default) || 0;
+    if (subtitleTracks.length) {
+        subtitleTracks.forEach((subtitleData, index) => {
+            const subtitleTrack = document.createElement('track');
+            subtitleTrack.kind = 'subtitles';
+            subtitleTrack.label = subtitleData.label;
+            subtitleTrack.srclang = subtitleData.srclang;
+            subtitleTrack.src = subtitleData.src;
+            subtitleTrack.default = index === window.currentSubtitleTrackIndex;
 
-        // Add listeners to detect load success/failure and allow retry
-        let tried = 0;
-        const maxTries = 2;
+            let tried = 0;
+            const maxTries = 2;
 
-        const onTrackLoad = () => {
-            try {
-                // Make track cues visible
-                if (subtitleTrack.track) subtitleTrack.track.mode = 'showing';
-                hidePlayerStatus();
-            } catch (e) {
-                console.warn('Subtitle load handling error', e);
-            }
-        };
-
-        const onTrackError = () => {
-            tried += 1;
-            console.warn('Subtitle failed to load:', subtitleTrack.src);
-            showPlayerStatus('error', '字幕加载失败，点击重试');
-            const statusEl = document.getElementById('playerStatus');
-            statusEl.style.cursor = 'pointer';
-            statusEl.onclick = () => {
-                statusEl.style.cursor = '';
-                statusEl.onclick = null;
-                hidePlayerStatus();
-                if (tried <= maxTries) {
-                    // try cache-busted reload
-                    subtitleTrack.src = movie.subtitleUrl + (movie.subtitleUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
-                    // re-attach to force reload
-                    subtitleTrack.remove();
-                    video.appendChild(subtitleTrack);
-                } else {
-                    showPlayerStatus('error', '字幕不可用，请检查网络或 CORS 配置');
+            const onTrackLoad = () => {
+                try {
+                    if (subtitleTrack.track) {
+                        subtitleTrack.track.mode = index === window.currentSubtitleTrackIndex ? 'showing' : 'disabled';
+                    }
+                    hidePlayerStatus();
+                } catch (e) {
+                    console.warn('Subtitle load handling error', e);
                 }
             };
-        };
 
-        subtitleTrack.addEventListener('load', onTrackLoad);
-        subtitleTrack.addEventListener('error', onTrackError);
+            const onTrackError = () => {
+                tried += 1;
+                console.warn('Subtitle failed to load:', subtitleTrack.src);
+                showPlayerStatus('error', '字幕加载失败，点击重试');
+                const statusEl = document.getElementById('playerStatus');
+                statusEl.style.cursor = 'pointer';
+                statusEl.onclick = () => {
+                    statusEl.style.cursor = '';
+                    statusEl.onclick = null;
+                    hidePlayerStatus();
+                    if (tried <= maxTries) {
+                        subtitleTrack.src = subtitleData.src + (subtitleData.src.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+                        subtitleTrack.remove();
+                        video.appendChild(subtitleTrack);
+                    } else {
+                        showPlayerStatus('error', '字幕不可用，请检查网络或 CORS 配置');
+                    }
+                };
+            };
 
-        video.appendChild(subtitleTrack);
+            subtitleTrack.addEventListener('load', onTrackLoad);
+            subtitleTrack.addEventListener('error', onTrackError);
+            video.appendChild(subtitleTrack);
+        });
+        renderSubtitleMenu();
     }
 
     // 同步播放辅助函数
@@ -1446,10 +1730,79 @@ function renderQualityMenu(qualities = []) {
     }).join('');
 }
 
+function renderSubtitleMenu() {
+    const menu = document.getElementById('subtitleMenu');
+    const video = document.getElementById('videoPlayer');
+    const movie = getCurrentMovie();
+    const tracksMeta = getSubtitleTracks(movie);
+    if (!menu || !video) return;
+
+    const tracks = video.textTracks || [];
+    const hasTracks = tracksMeta.length > 0;
+    const selectedIndex = Math.min(window.currentSubtitleTrackIndex || 0, Math.max(tracks.length - 1, 0));
+    const visible = window.subtitleStyleState.visible && tracks[selectedIndex] && tracks[selectedIndex].mode === 'showing';
+
+    const trackItems = hasTracks ? tracksMeta.map((track, index) => {
+        const selected = index === selectedIndex ? 'selected' : '';
+        return `<div class="menu-item ${selected}" onclick="window.selectSubtitleTrack(${index}); this.parentElement.classList.remove('active');">${track.label}</div>`;
+    }).join('') : '<div class="menu-item">暂无字幕轨</div>';
+
+    const visibilityItems = hasTracks ? `
+        <div class="menu-item ${visible ? 'selected' : ''}" onclick="window.setSubtitleVisibility(true); this.parentElement.classList.remove('active');">显示字幕</div>
+        <div class="menu-item ${!visible ? 'selected' : ''}" onclick="window.setSubtitleVisibility(false); this.parentElement.classList.remove('active');">关闭字幕</div>
+    ` : '';
+
+    const fonts = [
+        { label: '系统', value: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif' },
+        { label: '黑体', value: '"PingFang SC", "Microsoft YaHei", sans-serif' },
+        { label: '等宽', value: '"SFMono-Regular", "Menlo", "Courier New", monospace' }
+    ];
+    const sizes = [
+        { label: '小', value: '0.85rem' },
+        { label: '默认', value: '1rem' },
+        { label: '大', value: '1.2rem' }
+    ];
+    const positions = [
+        { label: '底部', value: 'bottom' },
+        { label: '中部', value: 'middle' },
+        { label: '顶部', value: 'top' }
+    ];
+
+    const fontItems = fonts.map(font => {
+        const selected = window.subtitleStyleState.fontFamily === font.value ? 'selected' : '';
+        return `<div class="menu-item ${selected}" onclick="window.setSubtitleFontFamily('${font.value}'); this.parentElement.classList.remove('active');">${font.label}</div>`;
+    }).join('');
+    const sizeItems = sizes.map(size => {
+        const selected = window.subtitleStyleState.fontSize === size.value ? 'selected' : '';
+        return `<div class="menu-item ${selected}" onclick="window.setSubtitleFontSize('${size.value}'); this.parentElement.classList.remove('active');">${size.label}</div>`;
+    }).join('');
+    const positionItems = positions.map(pos => {
+        const selected = window.subtitleStyleState.position === pos.value ? 'selected' : '';
+        return `<div class="menu-item ${selected}" onclick="window.setSubtitlePosition('${pos.value}'); this.parentElement.classList.remove('active');">${pos.label}</div>`;
+    }).join('');
+
+    menu.innerHTML = `
+        <div class="menu-section">字幕轨</div>
+        ${trackItems}
+        <div class="menu-section">显示</div>
+        ${visibilityItems}
+        <div class="menu-section">字体</div>
+        ${fontItems}
+        <div class="menu-section">大小</div>
+        ${sizeItems}
+        <div class="menu-section">位置</div>
+        ${positionItems}
+    `;
+}
+
     // 播放器控制
     function setupPlayerControls() {
         const video = document.getElementById('videoPlayer');
         const player = window.player;
+
+        // 禁止视频右键下载
+        video.addEventListener('contextmenu', (e) => e.preventDefault());
+        video.setAttribute('controlsList', 'nodownload');
         
         // 播放/暂停
         document.getElementById('playPauseBtn').addEventListener('click', () => {
@@ -1479,7 +1832,15 @@ function renderQualityMenu(qualities = []) {
         // 画质切换
         document.getElementById('qualityBtn').addEventListener('click', (e) => {
             const menu = document.getElementById('qualityMenu');
+            document.getElementById('subtitleMenu').classList.remove('active');
             menu.classList.toggle('active');
+            e.stopPropagation();
+        });
+        document.getElementById('subtitleBtn').addEventListener('click', (e) => {
+            const menu = document.getElementById('subtitleMenu');
+            document.getElementById('qualityMenu').classList.remove('active');
+            menu.classList.toggle('active');
+            renderSubtitleMenu();
             e.stopPropagation();
         });
         
@@ -1507,8 +1868,9 @@ function renderQualityMenu(qualities = []) {
         
         // 关闭其他菜单
         document.addEventListener('click', (e) => {
-            if (e.target.id !== 'qualityBtn') {
+            if (e.target.id !== 'qualityBtn' && e.target.id !== 'subtitleBtn') {
                 document.getElementById('qualityMenu').classList.remove('active');
+                document.getElementById('subtitleMenu').classList.remove('active');
             }
         });
     }
