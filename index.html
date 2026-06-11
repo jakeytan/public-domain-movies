@@ -956,7 +956,7 @@
             title: "The Circus", 
             year: 1928, 
             genre: "Comedy", 
-            overview: "卓别林大师经典默片，笑中带泪的马戏团故事。", 
+            overview: "《马戏团》是卓别林大师经典默片，笑中带泪的流浪者的故事。", 
             director: "查理·卓别林",
             rating: "⭐⭐⭐⭐⭐ 9.2", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png", 
@@ -970,7 +970,7 @@
             title: "All Quiet on the Western Front", 
             year: 1930, 
             genre: "Drama", 
-            overview: "反战史诗，第一次世界大战惨烈真实写照。", 
+            overview: "《西线无战事》是一部反战史诗，第一次世界大战惨烈真实写照。", 
             director: "刘易斯·迈尔斯通",
             rating: "⭐⭐⭐⭐⭐ 8.9", 
             backdrop: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/backdrops/all_quiet_backdrop.jpg?v=20260524", 
@@ -984,7 +984,7 @@
             title: "Metropolis", 
             year: 1927, 
             genre: "Sci-Fi", 
-            overview: "德国表现主义科幻巨作，影响后世无数电影。", 
+            overview: "《大都会》是一部德国表现主义科幻巨作，影响后世无数电影。", 
             director: "弗里茨·朗",
             rating: "⭐⭐⭐⭐⭐ 8.5", 
             backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200", 
@@ -997,7 +997,7 @@
             title: "Nosferatu", 
             year: 1922, 
             genre: "Horror", 
-            overview: "影史第一部吸血鬼电影，恐怖氛围至今经典。", 
+            overview: "《诺斯费拉图》是影史第一部吸血鬼电影，恐怖氛围至今经典。", 
             director: "弗里茨·穆瑙",
             rating: "⭐⭐⭐⭐ 8.0", 
             backdrop: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200", 
@@ -1010,7 +1010,7 @@
             title: "Modern Times", 
             year: 1936, 
             genre: "Comedy", 
-            overview: "卓别林对工业时代的辛辣讽刺。", 
+            overview: "《摩登时代》是卓别林对工业时代的辛辣讽刺。", 
             director: "查理·卓别林",
             rating: "⭐⭐⭐⭐⭐ 9.0", 
             backdrop: "https://images.unsplash.com/photo-1518834107819-67b0b7c58434?w=1200", 
@@ -1023,7 +1023,7 @@
             title: "Frankenstein", 
             year: 1931, 
             genre: "Horror", 
-            overview: "科学怪人的银幕始祖，哥特恐怖经典。", 
+            overview: "《科学怪人》是科学怪人的银幕始祖，哥特恐怖经典。", 
             director: "詹姆斯·惠尔",
             rating: "⭐⭐⭐⭐ 7.8", 
             backdrop: "https://images.unsplash.com/photo-1516916759473-600c07bc12d4?w=1200", 
@@ -1036,7 +1036,7 @@
             title: "The General", 
             year: 1926, 
             genre: "Action", 
-            overview: "巴斯特·基顿的火车追逐动作喜剧巅峰。", 
+            overview: "《将军》是巴斯特·基顿的火车追逐动作喜剧巅峰。", 
             director: "巴斯特·基顿、克莱德·布鲁克曼",
             rating: "⭐⭐⭐⭐⭐ 8.7", 
             backdrop: "https://images.unsplash.com/photo-1587923623987-c7e4081beb5f?w=1200", 
@@ -1076,7 +1076,7 @@
         return map[genre] || genre;
     }
 
-    const DEFAULT_FALLBACK_VIDEO = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+    const DEFAULT_FALLBACK_VIDEO = '';
 
     function getMoviePlaybackSource(movie) {
         const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();

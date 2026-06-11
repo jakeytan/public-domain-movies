@@ -906,7 +906,7 @@
             title: "The Circus", 
             year: 1928, 
             genre: "Comedy", 
-            overview: "这是卓别林继《淘金记》之后又一部伟大杰作。在这部作品中，卓别林扮演一个在马戏团工作的流浪汉，他要与一条恶犬搏斗，与逃脱的狮子纠缠，甚至骑在马背上走钢丝。在与女主人公的互动中，他又展现出了令人捧腹的笑料和深邃的人生哲理。电影中，卓别林用最直白的方式诠释了他在浮躁社会中的孤独与无奈。", 
+            overview: "卓别林大师经典默片，笑中带泪的马戏团故事。", 
             director: "查理·卓别林",
             cast: "查理·卓别林、门娜·肯尼迪、艾德娜·珀薇安丝",
             rating: "⭐⭐⭐⭐⭐ 9.2", 
@@ -914,6 +914,7 @@
             poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png", 
             hlsUrl: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/hls/the-circus/index.m3u8",
             videoUrl: "",
+            audioUrl: "",
             fallbackVideoUrl: ""
         },
         { 
@@ -1017,7 +1018,7 @@
         return movie || moviesData[0];
     }
 
-    const DEFAULT_FALLBACK_VIDEO = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+    const DEFAULT_FALLBACK_VIDEO = '';
 
     function getMoviePlaybackSource(movie) {
         const hlsUrl = movie.hlsUrl && movie.hlsUrl.trim();
@@ -1662,54 +1663,17 @@
 
     // 加载视频
     const source = getMoviePlaybackSource(movie);
+    if (!source.url) {
+        showPlayerStatus('error', '当前影片没有可用播放源。');
+        return;
+    }
     window.player.load(source.url, source.type, source.fallbackUrl);
     setupContinueWatching(movie, video);
 
     // 更新画质选项
     renderQualityMenu(window.player.getQualityLevels());
-
-    // 如果页面打开时请求自动播放，则尝试静音自动播放并提供取消静音按钮
-    if (window._autoPlayOnLoad) {
-        try {
-            showPlayerStatus('loading', '正在尝试自动播放（静音）...');
-            // ensure muted to increase autoplay success
-            video.muted = true;
-            window.player.play().then(() => {
-                hidePlayerStatus();
-                // show unmute button
-                const playerContainer = document.getElementById('playerContainer');
-                const existing = document.getElementById('unmuteBtn');
-                if (!existing && playerContainer) {
-                    const btn = document.createElement('button');
-                    btn.id = 'unmuteBtn';
-                    btn.className = 'modal-control-btn';
-                    btn.textContent = '取消静音';
-                    btn.addEventListener('click', () => {
-                        video.muted = false;
-                        btn.remove();
-                    });
-                    playerContainer.appendChild(btn);
-                }
-            }).catch((err) => {
-                console.warn('Autoplay blocked', err);
-                showPlayerStatus('error', '自动播放被阻止，点击播放以开始');
-                const statusEl = document.getElementById('playerStatus');
-                statusEl.style.cursor = 'pointer';
-                statusEl.onclick = () => {
-                    statusEl.style.cursor = '';
-                    statusEl.onclick = null;
-                    hidePlayerStatus();
-                    // User gesture: try play unmuted
-                    video.muted = false;
-                    window.player.play().catch(e => console.warn('Play failed', e));
-                };
-            });
-        } catch (e) {
-            console.warn('自动播放尝试出错', e);
-        }
-    }
-
 }
+
 function renderQualityMenu(qualities = []) {
     const qualityMenu = document.getElementById('qualityMenu');
     if (!qualityMenu) return;
@@ -1933,22 +1897,6 @@ function renderSubtitleMenu() {
 
     // 初始化
     renderDetail();
-    // 自动尝试在页面打开时播放（可被浏览器阻止）
-    (function tryAutoPlayOnLoad() {
-        const movie = getCurrentMovie();
-        if (!movie) return;
-        // mark auto-play intent for playMovie
-        window._autoPlayOnLoad = true;
-        setTimeout(() => {
-            try {
-                playMovie(movie);
-            } catch (e) {
-                console.warn('Auto play failed to start', e);
-            }
-            // clear flag shortly after attempting
-            setTimeout(() => { window._autoPlayOnLoad = false; }, 2000);
-        }, 500);
-    })();
 </script>
 
 </body>
