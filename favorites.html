@@ -269,59 +269,8 @@
     <div class="favorites-grid" id="favoritesGrid"></div>
 </main>
 
+<script src="movies-data.js"></script>
 <script>
-    const moviesData = [
-        {
-            id: 1,
-            title: "The Circus",
-            year: 1928,
-            genre: "Comedy",
-            poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_s.png"
-        },
-        {
-            id: 2,
-            title: "All Quiet on the Western Front",
-            year: 1930,
-            genre: "Drama",
-            poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/all_quiet_poster.jpg?v=20260524"
-        },
-        {
-            id: 3,
-            title: "Metropolis",
-            year: 1927,
-            genre: "Sci-Fi",
-            poster: "https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/posters/Metropolis_poster.jpg"
-        },
-        {
-            id: 4,
-            title: "Nosferatu",
-            year: 1922,
-            genre: "Horror",
-            poster: "https://placehold.co/300x450?text=Nosferatu&bg=111111&fg=ffffff"
-        },
-        {
-            id: 5,
-            title: "Modern Times",
-            year: 1936,
-            genre: "Comedy",
-            poster: "https://placehold.co/300x450?text=Modern+Times&bg=111111&fg=ffffff"
-        },
-        {
-            id: 6,
-            title: "Frankenstein",
-            year: 1931,
-            genre: "Horror",
-            poster: "https://placehold.co/300x450?text=Frankenstein&bg=111111&fg=ffffff"
-        },
-        {
-            id: 7,
-            title: "The General",
-            year: 1926,
-            genre: "Action",
-            poster: "https://placehold.co/300x450?text=The+General&bg=111111&fg=ffffff"
-        }
-    ];
-
     let activeSearchQuery = '';
 
     function getGenreLabel(genre) {
