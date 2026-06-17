@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="鑫艺影像馆，经典电影自由分享平台。">
     <meta property="og:title" content="电影详情 - 鑫艺影像馆">
     <meta property="og:description" content="观看并分享经典电影。">
@@ -719,21 +719,28 @@
             }
             .detail-hero-content {
                 flex-direction: column;
-                align-items: center;
-                text-align: center;
+                align-items: flex-start;
+                text-align: left;
+                left: 5%;
+                right: 5%;
+                max-width: none;
+                margin: 0;
             }
             .detail-poster {
                 width: 140px;
+            }
+            .detail-title-section {
+                width: 100%;
             }
             .detail-title {
                 font-size: 1.8rem;
             }
             .detail-meta {
-                justify-content: center;
+                justify-content: flex-start;
                 gap: 1rem;
             }
             .detail-actions {
-                justify-content: center;
+                justify-content: flex-start;
             }
             .recommendations {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
