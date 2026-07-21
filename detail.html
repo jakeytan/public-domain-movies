@@ -388,6 +388,132 @@
             max-width: 860px;
         }
 
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .comment-count {
+            color: #a3a3a3;
+            font-size: 0.9rem;
+        }
+
+        .guest-comment-form {
+            display: grid;
+            gap: 0.9rem;
+            background: rgba(16,16,18,0.96);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .comment-input-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+            gap: 0.85rem;
+        }
+
+        .guest-comment-form input,
+        .guest-comment-form textarea {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            padding: 0.9rem 0.95rem;
+            font: inherit;
+            outline: none;
+        }
+
+        .guest-comment-form input:focus,
+        .guest-comment-form textarea:focus {
+            border-color: rgba(229,9,20,0.75);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .guest-comment-form textarea {
+            min-height: 108px;
+            resize: vertical;
+        }
+
+        .guest-comment-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .guest-comment-tip {
+            color: #a3a3a3;
+            font-size: 0.82rem;
+        }
+
+        .btn-submit-comment {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            color: #fff;
+            background: linear-gradient(135deg, #e50914, #b1060f);
+            padding: 0.78rem 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .btn-submit-comment:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .guest-comment-list {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .guest-comment-item {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(16,16,18,0.92);
+            border-radius: 16px;
+            padding: 0.95rem 1rem;
+        }
+
+        .guest-comment-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            margin-bottom: 0.65rem;
+            color: #d7d7d7;
+            font-size: 0.82rem;
+            flex-wrap: wrap;
+        }
+
+        .guest-comment-name {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .guest-comment-message {
+            line-height: 1.8;
+            color: #e4e4e4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .guest-comment-empty {
+            color: #a3a3a3;
+            border: 1px dashed rgba(255,255,255,0.14);
+            border-radius: 16px;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+        }
+
         /* 推荐区 */
         .recommendations {
             display: grid;
@@ -895,6 +1021,28 @@
         <div class="content-section">
             <h2 class="section-title">🎭 主要演员</h2>
             <div class="overview-text" id="detailCast"></div>
+        </div>
+
+        <!-- 访客留言 -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">💬 访客留言</h2>
+                <div class="comment-count" id="commentCount">暂无留言</div>
+            </div>
+
+            <form class="guest-comment-form" id="commentForm">
+                <div class="comment-input-grid">
+                    <input id="guestNameInput" type="text" maxlength="20" placeholder="访客昵称（可选）" aria-label="访客昵称">
+                    <textarea id="guestMessageInput" maxlength="240" placeholder="留下你的观影感受、推荐语或看片心得..." aria-label="留言内容"></textarea>
+                </div>
+                <div class="guest-comment-actions">
+                    <div class="guest-comment-tip">留言仅保存在当前浏览器，方便游客讨论与回看。</div>
+                    <button class="btn-submit-comment" type="submit">发布留言</button>
+                </div>
+            </form>
+
+            <div class="guest-comment-list" id="commentList"></div>
+            <div class="guest-comment-empty" id="commentEmpty">还没有人留言，成为第一个留下观影感受的访客吧。</div>
         </div>
 
         <!-- 推荐电影 -->
@@ -1463,6 +1611,104 @@
     }
 
     // 渲染详情页
+    function getCommentStorageKey(movieId) {
+        return `guestComments_${movieId}`;
+    }
+
+    function getGuestComments(movieId) {
+        try {
+            const stored = JSON.parse(localStorage.getItem(getCommentStorageKey(movieId)) || '[]');
+            return Array.isArray(stored) ? stored : [];
+        } catch (error) {
+            console.warn('读取留言失败:', error);
+            return [];
+        }
+    }
+
+    function saveGuestComments(movieId, comments) {
+        localStorage.setItem(getCommentStorageKey(movieId), JSON.stringify(comments));
+    }
+
+    function renderComments(movieId) {
+        const list = document.getElementById('commentList');
+        const empty = document.getElementById('commentEmpty');
+        const count = document.getElementById('commentCount');
+        const comments = getGuestComments(movieId)
+            .filter(comment => comment && typeof comment.message === 'string')
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        count.textContent = comments.length ? `共 ${comments.length} 条留言` : '暂无留言';
+        list.innerHTML = '';
+
+        if (!comments.length) {
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        comments.forEach(comment => {
+            const item = document.createElement('article');
+            item.className = 'guest-comment-item';
+
+            const meta = document.createElement('div');
+            meta.className = 'guest-comment-meta';
+
+            const name = document.createElement('div');
+            name.className = 'guest-comment-name';
+            name.textContent = comment.name || '访客';
+
+            const time = document.createElement('div');
+            const createdAt = new Date(comment.createdAt || Date.now());
+            time.textContent = createdAt.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            meta.appendChild(name);
+            meta.appendChild(time);
+
+            const message = document.createElement('div');
+            message.className = 'guest-comment-message';
+            message.textContent = comment.message;
+
+            item.appendChild(meta);
+            item.appendChild(message);
+            list.appendChild(item);
+        });
+    }
+
+    function handleCommentSubmit(event) {
+        event.preventDefault();
+        const movie = getCurrentMovie();
+        const nameInput = document.getElementById('guestNameInput');
+        const messageInput = document.getElementById('guestMessageInput');
+        const name = (nameInput.value || '访客').trim().slice(0, 20) || '访客';
+        const message = messageInput.value.trim().slice(0, 240);
+
+        if (!message) {
+            showShareToast('留言内容不能为空。');
+            messageInput.focus();
+            return;
+        }
+
+        const comments = getGuestComments(movie.id);
+        comments.unshift({
+            name,
+            message,
+            createdAt: new Date().toISOString()
+        });
+
+        saveGuestComments(movie.id, comments.slice(0, 50));
+        renderComments(movie.id);
+        nameInput.value = '';
+        messageInput.value = '';
+        showShareToast('留言已发布，欢迎继续交流。');
+    }
+
     function renderDetail() {
         const movie = getCurrentMovie();
         document.getElementById('detailTitle').textContent = movie.title;
@@ -1482,6 +1728,7 @@
         playBtn.textContent = savedProgress >= 5 ? `▶ 继续播放 ${formatTime(savedProgress)}` : '▶ 立即播放';
         playBtn.addEventListener('click', () => playMovie(movie));
         document.getElementById('shareMovieBtn').addEventListener('click', () => shareMovie(movie));
+        renderComments(movie.id);
 
         // 推荐电影（同类型）
         const recommendations = moviesData.filter(m => m.genre === movie.genre && m.id !== movie.id);
@@ -1944,6 +2191,7 @@ function renderSubtitleMenu() {
 
     // 事件监听
     document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('commentForm').addEventListener('submit', handleCommentSubmit);
     window.addEventListener('click', (e) => {
         if (e.target === document.getElementById('videoModal')) closeModal();
     });
