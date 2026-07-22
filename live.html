@@ -327,8 +327,202 @@
             font-weight: 600;
         }
 
+        .live-detail {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.6fr);
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .detail-panel,
+        .comments-panel,
+        .manage-panel {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 1.5rem;
+        }
+
+        .detail-heading,
+        .panel-heading,
+        .form-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-heading h1 {
+            font-size: clamp(1.45rem, 3vw, 2.3rem);
+        }
+
+        .detail-description {
+            color: #c0c0c8;
+            line-height: 1.75;
+            margin-bottom: 1rem;
+        }
+
+        .live-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            color: #a8a8b2;
+            font-size: 0.85rem;
+        }
+
+        .live-meta span,
+        .live-status-pill {
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 999px;
+            padding: 0.35rem 0.65rem;
+        }
+
+        .live-status-pill {
+            color: #ff6870;
+            border-color: rgba(229,9,20,0.45);
+            white-space: nowrap;
+        }
+
+        .comments-list {
+            display: grid;
+            gap: 0.9rem;
+            max-height: 360px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .comment-item {
+            padding-bottom: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .comment-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .comment-author {
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .comment-time {
+            color: #777782;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .comment-text {
+            color: #c8c8d0;
+            line-height: 1.55;
+            margin-top: 0.35rem;
+            overflow-wrap: anywhere;
+        }
+
+        .comment-form,
+        .live-form {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .comment-form-row,
+        .form-actions {
+            display: flex;
+            gap: 0.65rem;
+            align-items: center;
+        }
+
+        .live-input,
+        .live-textarea {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.24);
+            color: #fff;
+            padding: 0.75rem 0.85rem;
+            font: inherit;
+            outline: none;
+        }
+
+        .live-input:focus,
+        .live-textarea:focus {
+            border-color: rgba(229,9,20,0.72);
+        }
+
+        .live-textarea {
+            min-height: 84px;
+            resize: vertical;
+        }
+
+        .manage-panel {
+            margin-top: 1.5rem;
+        }
+
+        .manage-panel[hidden] {
+            display: none;
+        }
+
+        .live-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .live-form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            justify-content: flex-end;
+        }
+
+        .live-button {
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 0.65rem 0.9rem;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .live-button:hover {
+            background: rgba(255,255,255,0.16);
+        }
+
+        .live-button.primary {
+            background: #e50914;
+            border-color: #e50914;
+        }
+
+        .channel-card .card-actions {
+            display: flex;
+            gap: 0.45rem;
+            margin-top: 0.9rem;
+        }
+
+        .card-action {
+            background: transparent;
+            border: 0;
+            color: #a8a8b2;
+            cursor: pointer;
+            padding: 0;
+            font: inherit;
+            font-size: 0.8rem;
+        }
+
+        .card-action:hover {
+            color: #fff;
+        }
+
         @media (max-width: 980px) {
             .player-section {
+                grid-template-columns: 1fr;
+            }
+
+            .live-detail {
                 grid-template-columns: 1fr;
             }
 
@@ -373,8 +567,15 @@
                 white-space: nowrap;
             }
             .player-card,
-            .schedule {
+            .schedule,
+            .detail-panel,
+            .comments-panel,
+            .manage-panel {
                 border-radius: 18px;
+            }
+
+            .live-form-grid {
+                grid-template-columns: 1fr;
             }
             .video-wrapper {
                 aspect-ratio: 16 / 9;
@@ -484,6 +685,7 @@
 	    <div>
 	        <a class="nav-link" href="index.html">返回首页</a>
 	        <a class="nav-link" href="favorites.html">我的收藏</a>
+            <button class="nav-link" id="manageLiveBtn" type="button">管理直播</button>
 	    </div>
 </nav>
 <main>
@@ -557,32 +759,92 @@
         </div>
     </section>
 
+    <section class="live-detail" aria-label="直播详情与评论">
+        <article class="detail-panel">
+            <div class="detail-heading">
+                <h1 id="liveTitle">直播详情</h1>
+                <span class="live-status-pill">直播中</span>
+            </div>
+            <p class="detail-description" id="liveDescription"></p>
+            <div class="live-meta" id="liveMeta"></div>
+        </article>
+        <aside class="comments-panel">
+            <div class="panel-heading">
+                <h2>直播评论</h2>
+                <span id="commentCount">0 条</span>
+            </div>
+            <div class="comments-list" id="commentsList"></div>
+            <form class="comment-form" id="commentForm">
+                <div class="comment-form-row">
+                    <input class="live-input" id="commentAuthor" maxlength="20" placeholder="昵称" required>
+                    <button class="live-button primary" type="submit">发送</button>
+                </div>
+                <textarea class="live-textarea" id="commentText" maxlength="240" placeholder="说点什么..." required></textarea>
+            </form>
+        </aside>
+    </section>
+
+    <section class="manage-panel" id="managePanel" hidden>
+        <div class="form-heading">
+            <h2 id="formTitle">发布直播</h2>
+            <button class="live-button" id="manageToggleBtn" type="button">收起</button>
+        </div>
+        <form class="live-form" id="liveForm">
+            <div class="live-form-grid">
+                <input class="live-input" id="liveName" maxlength="40" placeholder="直播名称" required>
+                <input class="live-input" id="liveDescriptionInput" maxlength="120" placeholder="直播简介" required>
+                <input class="live-input" id="liveStream" type="url" placeholder="主直播地址（m3u8 或 mp4）" required>
+                <input class="live-input" id="liveFallback" type="url" placeholder="备用直播地址（可选）">
+                <input class="live-input full-width" id="liveProgram" maxlength="60" placeholder="节目名称（可选）">
+            </div>
+            <div class="form-actions">
+                <button class="live-button" id="cancelEditBtn" type="button" hidden>取消编辑</button>
+                <button class="live-button primary" type="submit">保存直播</button>
+            </div>
+        </form>
+    </section>
+
 </main>
 <script src="player.js?v=20260531-decode-fix"></script>
 <script>
-    const liveChannels = [
+    const defaultLiveChannels = [
         {
             id: 1,
             name: '经典电影频道',
             description: '经典电影实时播放',
             stream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-            fallbackStream: 'https://test-streams.mux.dev/pts_shift/master.m3u8'
+            fallbackStream: 'https://test-streams.mux.dev/pts_shift/master.m3u8',
+            program: '经典电影巡礼'
         },
         {
             id: 2,
             name: '艺术大片频道',
             description: '沉浸式艺术影片实时连播',
             stream: 'https://test-streams.mux.dev/pts_shift/master.m3u8',
-            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+            program: '艺术影像展映'
         },
         {
             id: 3,
             name: '纪录片频道',
             description: '纪录片夜间直播',
             stream: 'https://test-streams.mux.dev/4v3p6f8w/master.m3u8',
-            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+            fallbackStream: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+            program: '纪录片夜聊'
         }
     ];
+
+    function readStorage(key, fallback) {
+        try {
+            const value = JSON.parse(localStorage.getItem(key));
+            return value && typeof value === 'object' ? value : fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    let liveChannels = readStorage('liveChannels', defaultLiveChannels);
+    if (!Array.isArray(liveChannels) || !liveChannels.length) liveChannels = defaultLiveChannels;
 
     const programSchedule = [
         { time: '20:00', title: '经典电影巡礼', channel: '经典电影频道' },
@@ -603,9 +865,27 @@
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const favoriteBtn = document.getElementById('favoriteBtn');
     const playerCard = document.querySelector('.player-card');
+    const liveTitle = document.getElementById('liveTitle');
+    const liveDescription = document.getElementById('liveDescription');
+    const liveMeta = document.getElementById('liveMeta');
+    const commentsList = document.getElementById('commentsList');
+    const commentCount = document.getElementById('commentCount');
+    const commentForm = document.getElementById('commentForm');
+    const manageLiveBtn = document.getElementById('manageLiveBtn');
+    const managePanel = document.getElementById('managePanel');
+    const manageToggleBtn = document.getElementById('manageToggleBtn');
+    const liveForm = document.getElementById('liveForm');
+    const formTitle = document.getElementById('formTitle');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const liveName = document.getElementById('liveName');
+    const liveDescriptionInput = document.getElementById('liveDescriptionInput');
+    const liveStream = document.getElementById('liveStream');
+    const liveFallback = document.getElementById('liveFallback');
+    const liveProgram = document.getElementById('liveProgram');
 
     let streamPlayer = null;
     let activeChannel = liveChannels[0];
+    let editingChannelId = null;
     let controlsTimer = null;
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
@@ -614,18 +894,104 @@
             <div class="channel-card" data-id="${channel.id}">
                 <h3>${channel.name}</h3>
                 <p>${channel.description}</p>
+                <div class="card-actions">
+                    <button class="card-action" data-action="edit" type="button">编辑</button>
+                    <button class="card-action" data-action="delete" type="button">删除</button>
+                </div>
             </div>
         `).join('');
 
         document.querySelectorAll('.channel-card').forEach(card => {
-            card.addEventListener('click', () => {
+            card.addEventListener('click', event => {
+                if (event.target.closest('.card-action')) return;
                 const id = Number(card.getAttribute('data-id'));
                 const channel = liveChannels.find(item => item.id === id);
                 if (channel) {
                     selectChannel(channel);
                 }
             });
+            card.querySelectorAll('.card-action').forEach(action => {
+                action.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const id = Number(card.getAttribute('data-id'));
+                    if (action.dataset.action === 'edit') startEdit(id);
+                    if (action.dataset.action === 'delete') deleteChannel(id);
+                });
+            });
         });
+    }
+
+    function saveChannels() {
+        localStorage.setItem('liveChannels', JSON.stringify(liveChannels));
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[character]));
+    }
+
+    function getComments() {
+        return readStorage('liveComments', {});
+    }
+
+    function renderDetails() {
+        liveTitle.textContent = activeChannel.name;
+        liveDescription.textContent = activeChannel.description;
+        liveMeta.innerHTML = [
+            `节目：${escapeHTML(activeChannel.program || '自由直播')}`,
+            `频道 ID：${activeChannel.id}`,
+            '评论实时更新'
+        ].map(item => `<span>${item}</span>`).join('');
+    }
+
+    function renderComments() {
+        const comments = getComments()[activeChannel.id] || [];
+        commentCount.textContent = `${comments.length} 条`;
+        commentsList.innerHTML = comments.length ? comments.map(comment => `
+            <div class="comment-item">
+                <div><span class="comment-author">${escapeHTML(comment.author)}</span><span class="comment-time">${escapeHTML(comment.time)}</span></div>
+                <div class="comment-text">${escapeHTML(comment.text)}</div>
+            </div>
+        `).join('') : '<p class="comment-text">还没有评论，来做第一个发言的人吧。</p>';
+    }
+
+    function toggleManagePanel(show) {
+        managePanel.hidden = !show;
+        if (show) managePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetLiveForm() {
+        editingChannelId = null;
+        formTitle.textContent = '发布直播';
+        cancelEditBtn.hidden = true;
+        liveForm.reset();
+    }
+
+    function startEdit(id) {
+        const channel = liveChannels.find(item => item.id === id);
+        if (!channel) return;
+        editingChannelId = id;
+        formTitle.textContent = '编辑直播';
+        cancelEditBtn.hidden = false;
+        liveName.value = channel.name;
+        liveDescriptionInput.value = channel.description;
+        liveStream.value = channel.stream;
+        liveFallback.value = channel.fallbackStream || '';
+        liveProgram.value = channel.program || '';
+        toggleManagePanel(true);
+    }
+
+    function deleteChannel(id) {
+        const channel = liveChannels.find(item => item.id === id);
+        if (!channel || !window.confirm(`确定删除“${channel.name}”吗？`)) return;
+        liveChannels = liveChannels.filter(item => item.id !== id);
+        saveChannels();
+        if (activeChannel.id === id) activeChannel = liveChannels[0];
+        renderChannels();
+        if (activeChannel) selectChannel(activeChannel);
+        else setLiveStatus('暂无直播，请先发布一个直播');
+        resetLiveForm();
     }
 
     function renderSchedule() {
@@ -773,6 +1139,8 @@
             inline: 'center'
         });
         updateFavoriteButton();
+        renderDetails();
+        renderComments();
         loadStream(channel.stream, channel.fallbackStream);
     }
 
@@ -823,6 +1191,56 @@
     });
 
     favoriteBtn.addEventListener('click', toggleFavoriteChannel);
+
+    manageLiveBtn.addEventListener('click', () => {
+        resetLiveForm();
+        toggleManagePanel(true);
+    });
+
+    manageToggleBtn.addEventListener('click', () => toggleManagePanel(false));
+    cancelEditBtn.addEventListener('click', resetLiveForm);
+
+    liveForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const wasEditing = Boolean(editingChannelId);
+        const nextChannel = {
+            id: editingChannelId || Date.now(),
+            name: liveName.value.trim(),
+            description: liveDescriptionInput.value.trim(),
+            stream: liveStream.value.trim(),
+            fallbackStream: liveFallback.value.trim(),
+            program: liveProgram.value.trim() || '自由直播'
+        };
+        if (wasEditing) {
+            liveChannels = liveChannels.map(channel => channel.id === editingChannelId ? nextChannel : channel);
+        } else {
+            liveChannels = [...liveChannels, nextChannel];
+        }
+        saveChannels();
+        activeChannel = nextChannel;
+        renderChannels();
+        selectChannel(nextChannel);
+        resetLiveForm();
+        toggleManagePanel(false);
+        setLiveStatus(wasEditing ? '直播已更新' : '直播已发布');
+    });
+
+    commentForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const authorInput = document.getElementById('commentAuthor');
+        const textInput = document.getElementById('commentText');
+        const comments = getComments();
+        const channelComments = comments[activeChannel.id] || [];
+        channelComments.push({
+            author: authorInput.value.trim(),
+            text: textInput.value.trim(),
+            time: new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        });
+        comments[activeChannel.id] = channelComments;
+        localStorage.setItem('liveComments', JSON.stringify(comments));
+        commentForm.reset();
+        renderComments();
+    });
 
     ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'waiting', 'playing'].forEach(eventName => {
         video.addEventListener(eventName, updateControlState);
