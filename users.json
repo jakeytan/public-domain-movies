@@ -10,5 +10,11 @@
     "username": "browserUser",
     "passwordHash": "2bb935e5559d1ebb9206870d02d23e1577f0cb5c763fba46ba4caae7087c58a1",
     "createdAt": "2026-07-26T02:25:50.501Z"
+  },
+  {
+    "id": "cb01a07a-6523-44f2-a5b4-17fd9dfa9456",
+    "username": "tamno",
+    "passwordHash": "040aa249ee73b9053e06cef7a7990e1f2932240005ee44ac85cd896d3c3d38d8",
+    "createdAt": "2026-07-26T02:41:06.892Z"
   }
 ]
