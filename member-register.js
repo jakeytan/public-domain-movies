@@ -11,6 +11,9 @@
     const LOGIN_USERNAME_ID = 'loginUsername';
     const LOGIN_PASSWORD_ID = 'loginPassword';
     const AUTH_STATUS_ID = 'authStatus';
+    const AUTH_NAV_STATUS_ID = 'authNavStatus';
+    const LOGOUT_BUTTON_ID = 'logoutBtn';
+    const OPEN_BUTTON_LABEL = '会员中心';
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;
@@ -136,6 +139,18 @@
                 font-size: 0.85rem;
                 min-height: 1.2rem;
             }
+
+            .auth-nav-status {
+                color: #ffd7d7;
+                font-size: 0.9rem;
+                white-space: nowrap;
+            }
+
+            .member-only-hint {
+                color: #ffb3b8;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -144,15 +159,33 @@
         return localStorage.getItem('memberAuthToken');
     }
 
+    function getStoredUsername() {
+        return localStorage.getItem('memberUsername') || '';
+    }
+
     function setStoredToken(token) {
         if (token) localStorage.setItem('memberAuthToken', token);
         else localStorage.removeItem('memberAuthToken');
     }
 
+    function setStoredUsername(username) {
+        if (username) localStorage.setItem('memberUsername', username);
+        else localStorage.removeItem('memberUsername');
+    }
+
     async function requestJson(path, options = {}) {
+        const token = getStoredToken();
         const response = await fetch(`${API_BASE}${path}`, {
-            headers: { 'Content-Type': 'application/json' },
-            ...options
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -216,6 +249,7 @@
                 body: JSON.stringify({ username, password })
             });
             setStoredToken(data.token);
+            setStoredUsername(data.user.username);
             form.reset();
             closeRegisterModal();
             showToast(`会员注册成功：${data.user.username} 已加入。`);
@@ -241,6 +275,7 @@
                 body: JSON.stringify({ username, password })
             });
             setStoredToken(data.token);
+            setStoredUsername(data.user.username);
             document.getElementById(LOGIN_FORM_ID)?.reset();
             closeRegisterModal();
             showToast(`欢迎回来，${data.user.username}。`);
@@ -250,26 +285,69 @@
         }
     }
 
-    function updateAuthStatus() {
-        const status = document.getElementById(AUTH_STATUS_ID);
-        if (!status) return;
+    async function restoreSession() {
         const token = getStoredToken();
+        const username = getStoredUsername();
         if (!token) {
-            status.textContent = '尚未登录';
+            updateAuthStatus();
             return;
         }
-        status.textContent = '已登录，欢迎使用会员功能';
+        try {
+            const data = await requestJson('/api/auth/me');
+            setStoredUsername(data.user.username);
+            updateAuthStatus(data.user.username);
+        } catch (error) {
+            setStoredToken(null);
+            setStoredUsername(null);
+            updateAuthStatus();
+        }
+    }
+
+    async function logout() {
+        const token = getStoredToken();
+        if (token) {
+            try {
+                await requestJson('/api/auth/logout', { method: 'POST' });
+            } catch (error) {
+                // ignore and clear locally
+            }
+        }
+        setStoredToken(null);
+        setStoredUsername(null);
+        updateAuthStatus();
+        showToast('已退出登录。');
+    }
+
+    function updateAuthStatus(username = getStoredUsername()) {
+        const status = document.getElementById(AUTH_STATUS_ID);
+        const navStatus = document.getElementById(AUTH_NAV_STATUS_ID);
+        const logoutButton = document.getElementById(LOGOUT_BUTTON_ID);
+        const openButton = document.getElementById(OPEN_BUTTON_ID);
+        const token = getStoredToken();
+
+        if (status) {
+            status.textContent = token && username ? `欢迎，${username}` : '尚未登录';
+        }
+        if (navStatus) {
+            navStatus.textContent = token && username ? `欢迎，${username}` : '尚未登录';
+        }
+        if (logoutButton) {
+            logoutButton.hidden = !token;
+        }
+        if (openButton) {
+            openButton.textContent = token ? OPEN_BUTTON_LABEL : '会员注册';
+        }
     }
 
     function switchTab(target) {
-        const loginPanel = document.getElementById('loginPanel');
-        const registerPanel = document.getElementById('registerPanel');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
         const loginTab = document.getElementById(LOGIN_TAB_ID);
         const registerTab = document.getElementById(REGISTER_TAB_ID);
-        if (!loginPanel || !registerPanel || !loginTab || !registerTab) return;
+        if (!loginTab || !registerTab) return;
         const isLogin = target === 'login';
-        loginPanel.hidden = !isLogin;
-        registerPanel.hidden = isLogin;
+        if (loginForm) loginForm.hidden = !isLogin;
+        if (registerForm) registerForm.hidden = isLogin;
         loginTab.classList.toggle('active', isLogin);
         registerTab.classList.toggle('active', !isLogin);
     }
@@ -282,6 +360,7 @@
         const loginForm = document.getElementById(LOGIN_FORM_ID);
         const loginTab = document.getElementById(LOGIN_TAB_ID);
         const registerTab = document.getElementById(REGISTER_TAB_ID);
+        const logoutButton = document.getElementById(LOGOUT_BUTTON_ID);
 
         if (openButton) {
             openButton.addEventListener('click', openRegisterModal);
@@ -312,10 +391,17 @@
         if (registerTab) {
             registerTab.addEventListener('click', () => switchTab('register'));
         }
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                logout();
+            });
+        }
     }
 
     injectStyles();
     bindModalEvents();
     updateAuthStatus();
+    restoreSession();
     switchTab('login');
 })();

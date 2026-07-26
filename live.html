@@ -741,7 +741,9 @@
 	    <div>
 	        <a class="nav-link" href="index.html">返回首页</a>
 	        <a class="nav-link" href="favorites.html">我的收藏</a>
+            <span class="auth-nav-status" id="authNavStatus"></span>
             <button class="nav-link" id="openRegisterModalBtn" type="button">会员注册</button>
+            <button class="nav-link" id="logoutBtn" type="button" hidden>退出登录</button>
             <button class="nav-link" id="manageLiveBtn" type="button">管理直播</button>
 	    </div>
 </nav>
@@ -885,6 +887,7 @@
     </section>
 
     <section class="manage-panel" id="managePanel" hidden>
+        <div class="member-only-hint" id="memberOnlyHint">仅登录会员可管理直播。</div>
         <div class="form-heading">
             <h2 id="formTitle">发布直播</h2>
             <button class="live-button" id="manageToggleBtn" type="button">收起</button>
@@ -975,6 +978,7 @@
     const commentForm = document.getElementById('commentForm');
     const manageLiveBtn = document.getElementById('manageLiveBtn');
     const managePanel = document.getElementById('managePanel');
+    const memberOnlyHint = document.getElementById('memberOnlyHint');
     const manageToggleBtn = document.getElementById('manageToggleBtn');
     const liveForm = document.getElementById('liveForm');
     const formTitle = document.getElementById('formTitle');
@@ -1086,6 +1090,14 @@
     }
 
     function toggleManagePanel(show) {
+        const token = localStorage.getItem('memberAuthToken');
+        if (!token) {
+            if (memberOnlyHint) memberOnlyHint.textContent = '请先登录会员后再管理直播。';
+            managePanel.hidden = false;
+            managePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+        if (memberOnlyHint) memberOnlyHint.textContent = '仅登录会员可管理直播。';
         managePanel.hidden = !show;
         if (show) managePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }

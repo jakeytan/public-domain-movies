@@ -4,5 +4,11 @@
     "username": "demoUser",
     "passwordHash": "c3b72d500439ed0a8ba71b206c2a7633aac81d113fe90009c1da1e465249494e",
     "createdAt": "2026-07-26T02:23:25.121Z"
+  },
+  {
+    "id": "604faf0d-ae83-4e6d-b4de-1e6b262d6975",
+    "username": "browserUser",
+    "passwordHash": "2bb935e5559d1ebb9206870d02d23e1577f0cb5c763fba46ba4caae7087c58a1",
+    "createdAt": "2026-07-26T02:25:50.501Z"
   }
 ]
