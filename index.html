@@ -8,6 +8,12 @@
     <meta property="og:description" content="观看并分享经典电影。">
     <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
     <meta property="og:type" content="website">
+    <meta name="keywords" content="经典电影, 电影点播, 影视站, 旧片, 默片, 电影推荐">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#0f0f10">
+    <link rel="canonical" href="https://example.com/index.html">
+    <link rel="preconnect" href="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="icon" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <title>鑫艺影像馆 · 致敬经典电影</title>
@@ -161,6 +167,12 @@
             gap: 0.75rem;
         }
 
+        .search-shell {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         .search-input {
             width: min(24vw, 260px);
             min-width: 180px;
@@ -169,7 +181,7 @@
             border-radius: 999px;
             background: rgba(255,255,255,0.08);
             color: #fff;
-            padding: 0 1rem;
+            padding: 0 1rem 0 1rem;
             font: inherit;
             outline: none;
         }
@@ -181,6 +193,33 @@
         .search-input:focus {
             border-color: rgba(229,9,20,0.75);
             background: rgba(255,255,255,0.12);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 0.45rem;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .search-clear.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .search-clear:hover {
+            background: rgba(229,9,20,0.82);
         }
 
         .share-toast {
@@ -469,10 +508,114 @@
             margin-bottom: 2rem;
         }
 
+        .section-shell {
+            margin-bottom: 2rem;
+        }
+
+        .info-strip {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin: 0 0 2rem;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1rem 1.1rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        .info-card strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .info-card span {
+            color: #b7b7c2;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
         .section-heading {
             font-size: 1.35rem;
             margin-bottom: 1rem;
             font-weight: 750;
+        }
+
+        .results-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: #b7b7c2;
+            font-size: 0.95rem;
+        }
+
+        .results-summary .reset-filters {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.16);
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .results-summary .reset-filters:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .section-subtitle {
+            color: #b7b7c2;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .preference-panel {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .preference-select {
+            min-width: 130px;
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 0.45rem 0.8rem;
+            font: inherit;
+        }
+
+        .preference-button {
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #e50914, #b20710);
+            color: #fff;
+            padding: 0.45rem 0.85rem;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .preference-button:hover {
+            filter: brightness(1.06);
+        }
+
+        .movie-card {
+            content-visibility: auto;
+            contain-intrinsic-size: 260px 360px;
         }
 
         .continue-grid {
@@ -659,6 +802,47 @@
             stroke: currentColor;
         }
 
+        .back-to-top {
+            position: fixed;
+            right: 1rem;
+            bottom: 1.25rem;
+            width: 46px;
+            height: 46px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(229,9,20,0.9);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 60;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
         /* 加载动画 */
         .loader {
             text-align: center;
@@ -707,6 +891,13 @@
                 min-width: 150px;
                 height: 38px;
                 font-size: 0.82rem;
+            }
+            .info-strip {
+                grid-template-columns: 1fr;
+            }
+            .results-summary {
+                flex-direction: column;
+                align-items: flex-start;
             }
             .hero {
                 height: 76vh;
@@ -857,7 +1048,10 @@
         </div>
     </div>
     <div class="nav-actions">
-        <input class="search-input" id="movieSearchInput" type="search" placeholder="搜索电影" aria-label="搜索电影">
+        <div class="search-shell">
+            <input class="search-input" id="movieSearchInput" type="search" placeholder="搜索电影" aria-label="搜索电影">
+            <button class="search-clear" id="searchClearBtn" type="button" aria-label="清空搜索">×</button>
+        </div>
         <a class="nav-link" href="live.html">直播入口</a>
         <a class="nav-link" href="favorites.html">我的收藏</a>
         <span class="auth-nav-status" id="authNavStatus"></span>
@@ -920,10 +1114,59 @@
 </section>
 
 <main class="container">
+    <section class="info-strip" aria-label="站点亮点">
+        <div class="info-card">
+            <strong>经典重温</strong>
+            <span>从默片到老派电影，我们用精致海报与分类方式，让你更快找到心爱的作品。</span>
+        </div>
+        <div class="info-card">
+            <strong>免费点播</strong>
+            <span>一键进入播放页，支持继续观看进度记忆，适合随时翻看。</span>
+        </div>
+        <div class="info-card">
+            <strong>收藏追剧</strong>
+            <span>收藏喜欢的影片，后续随时回看，也适合整理你的私藏清单。</span>
+        </div>
+    </section>
+    <section class="section-shell">
+        <div class="section-header">
+            <div>
+                <h2 class="section-heading">为你推荐</h2>
+                <p class="section-subtitle">根据你的偏好、收藏和观看进度，给出更贴合口味的电影。</p>
+            </div>
+            <div class="preference-panel">
+                <select class="preference-select" id="preferenceGenreSelect" aria-label="选择偏好类型"></select>
+                <button class="preference-button" id="savePreferenceBtn" type="button">保存偏好</button>
+            </div>
+        </div>
+        <div class="movies-grid" id="personalizedRail"></div>
+    </section>
+    <section class="section-shell">
+        <div class="section-header">
+            <div>
+                <h2 class="section-heading">最近更新</h2>
+                <p class="section-subtitle">新近加入的经典片单和近期补充内容，适合快速发现新内容。</p>
+            </div>
+        </div>
+        <div class="movies-grid" id="recentlyUpdatedRail"></div>
+    </section>
+    <section class="section-shell">
+        <div class="section-header">
+            <div>
+                <h2 class="section-heading">热门推荐</h2>
+                <p class="section-subtitle">站内高评价和高人气作品，适合挑选一部直接开始。</p>
+            </div>
+        </div>
+        <div class="movies-grid" id="popularRail"></div>
+    </section>
     <section class="continue-section" id="continueSection" hidden>
         <h2 class="section-heading">继续观看</h2>
         <div class="continue-grid" id="continueGrid"></div>
     </section>
+    <div class="results-summary" id="resultsSummary">
+        <span>为你筛选出 <strong id="resultsCount">0</strong> 部影片</span>
+        <button class="reset-filters" id="resetFiltersBtn" type="button">重置筛选</button>
+    </div>
     <div class="genre-filter" id="genreFilterContainer">
         <button class="genre-btn active" data-genre="all">全部</button>
     </div>
@@ -943,6 +1186,8 @@
         </button>
     </div>
 </main>
+
+<button class="back-to-top" id="backToTopBtn" type="button" aria-label="返回顶部">↑</button>
 
 <div id="videoModal" class="modal">
     <div class="modal-container">
@@ -1013,6 +1258,13 @@
     const modalFavoriteBtn = document.getElementById('modalFavoriteBtn');
     const modalContainer = document.querySelector('.modal-container');
     const movieSearchInput = document.getElementById('movieSearchInput');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const resultsCount = document.getElementById('resultsCount');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    const preferenceGenreSelect = document.getElementById('preferenceGenreSelect');
+    const savePreferenceBtn = document.getElementById('savePreferenceBtn');
+    let searchDebounceTimer = null;
 
     // 分类映射
     function getGenreLabel(genre) {
@@ -1142,6 +1394,20 @@
         return haystack.includes(query);
     }
 
+    function updateResultsSummary() {
+        const count = currentMovies.length;
+        resultsCount.textContent = count;
+        const genreLabel = activeGenre === 'all' ? '全部' : getGenreLabel(activeGenre);
+        const searchLabel = activeSearchQuery.trim() ? ` · 搜索“${activeSearchQuery.trim()}”` : '';
+        const summaryText = resultsCount.parentElement.querySelector('span');
+        if (summaryText) {
+            summaryText.textContent = `为你筛选出 ${count} 部影片${searchLabel}`;
+            if (activeGenre !== 'all') {
+                summaryText.textContent += ` · 当前分类：${genreLabel}`;
+            }
+        }
+    }
+
     function applyMovieFilters() {
         const query = activeSearchQuery.trim().toLowerCase();
         currentMovies = moviesData.filter(movie => {
@@ -1150,10 +1416,89 @@
         });
         renderMoviesGrid();
         renderHeroPosterRail();
-        // 如果筛选后列表不为空，更新Hero为第一个电影
         if (currentMovies.length) setHeroMovie(currentMovies[0], 0);
         updateMovieRailButtons();
+        updateResultsSummary();
         startHeroRotation();
+    }
+
+    function getMovieRatingValue(movie) {
+        const match = String(movie.rating || '').match(/(\d+(?:\.\d+)?)/);
+        return Number(match?.[1] || 0);
+    }
+
+    function getPreferredGenre() {
+        return localStorage.getItem('preferredGenre') || 'all';
+    }
+
+    function setPreferredGenre(genre) {
+        localStorage.setItem('preferredGenre', genre);
+    }
+
+    function renderPreferenceOptions() {
+        if (!preferenceGenreSelect) return;
+        const genres = [...new Set(moviesData.map(movie => movie.genre))];
+        preferenceGenreSelect.innerHTML = ['<option value="all">全部类型</option>', ...genres.map(genre => `<option value="${genre}">${getGenreLabel(genre)}</option>`)].join('');
+        preferenceGenreSelect.value = getPreferredGenre();
+    }
+
+    function renderRecommendationRail(containerId, movies) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        if (!movies.length) {
+            container.innerHTML = '<div class="loader">暂无可展示内容</div>';
+            return;
+        }
+
+        container.innerHTML = movies.map(movie => `
+            <div class="movie-card" data-movie-id="${movie.id}">
+                <div class="poster-wrapper">
+                    <img class="poster" src="${movie.poster}" alt="${movie.title}" loading="lazy" decoding="async" onerror="this.src='https://placehold.co/300x450?text=Classic&bg=111111&fg=ffffff'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">${movie.title}</div>
+                    <div class="movie-year">${movie.year} · ${getGenreLabel(movie.genre)}</div>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('.movie-card').forEach(card => {
+            const movieId = Number(card.getAttribute('data-movie-id'));
+            const movie = moviesData.find(item => item.id === movieId);
+            if (!movie) return;
+            card.addEventListener('click', () => goToMovieDetail(movie));
+        });
+    }
+
+    function renderRecommendationRails() {
+        const favoriteIds = getFavoriteMovies();
+        const personalized = moviesData
+            .map(movie => {
+                let score = (movie.popularity || 0) + getMovieRatingValue(movie) * 10;
+                const preferredGenre = getPreferredGenre();
+                if (preferredGenre !== 'all' && movie.genre === preferredGenre) score += 18;
+                if (favoriteIds.includes(movie.id)) score += 16;
+                if (movie.featured) score += 8;
+                if (movie.year >= 1930) score += 4;
+                const progress = getSavedProgress(movie.id);
+                if (progress >= 5) score += 6;
+                return { ...movie, score };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 8);
+
+        const recentlyUpdated = [...moviesData]
+            .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
+            .slice(0, 8);
+
+        const popular = [...moviesData]
+            .map(movie => ({ ...movie, score: (movie.popularity || 0) + getMovieRatingValue(movie) * 8 }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 8);
+
+        renderRecommendationRail('personalizedRail', personalized);
+        renderRecommendationRail('recentlyUpdatedRail', recentlyUpdated);
+        renderRecommendationRail('popularRail', popular);
     }
 
     function updateMovieRailButtons() {
@@ -1394,14 +1739,46 @@
         document.addEventListener('fullscreenchange', showModalControls);
     }
 
+    function handleSearchInput(value) {
+        activeSearchQuery = value;
+        searchClearBtn.classList.toggle('visible', value.trim().length > 0);
+        window.clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = window.setTimeout(() => {
+            applyMovieFilters();
+        }, 180);
+    }
+
+    function resetMovieFilters() {
+        activeGenre = 'all';
+        activeSearchQuery = '';
+        movieSearchInput.value = '';
+        searchClearBtn.classList.remove('visible');
+        renderGenreFilter();
+        filterByGenre('all');
+    }
+
+    function toggleBackToTopButton() {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 360);
+    }
+
     movieScrollLeft.addEventListener('click', () => scrollMovieRail(-1));
 	    movieScrollRight.addEventListener('click', () => scrollMovieRail(1));
 	    movieRail.addEventListener('scroll', updateMovieRailButtons, { passive: true });
 	    window.addEventListener('resize', updateMovieRailButtons);
-	    movieSearchInput.addEventListener('input', (event) => {
-	        activeSearchQuery = event.target.value;
-	        applyMovieFilters();
+	    window.addEventListener('scroll', toggleBackToTopButton, { passive: true });
+	    movieSearchInput.addEventListener('input', (event) => handleSearchInput(event.target.value));
+	    searchClearBtn.addEventListener('click', () => {
+	        movieSearchInput.value = '';
+	        handleSearchInput('');
 	    });
+	    resetFiltersBtn.addEventListener('click', resetMovieFilters);
+	    savePreferenceBtn?.addEventListener('click', () => {
+	        const value = preferenceGenreSelect?.value || 'all';
+	        setPreferredGenre(value);
+	        renderRecommendationRails();
+	        showShareToast(`已更新你的偏好，优先展示“${getGenreLabel(value === 'all' ? '全部' : value)}”。`);
+	    });
+	    backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 	    heroSection.addEventListener('click', () => goToMovieDetail());
     heroSection.addEventListener('mouseenter', () => window.clearInterval(heroRotationTimer));
     heroSection.addEventListener('mouseleave', startHeroRotation);
@@ -1482,7 +1859,12 @@
         renderGenreFilter();
 	        currentMovies = [...moviesData];
         renderContinueWatching();
+        renderPreferenceOptions();
+        updateResultsSummary();
         applyMovieFilters();
+        window.requestAnimationFrame(() => {
+            renderRecommendationRails();
+        });
         renderHeroPosterRail();
         setHeroMovie(moviesData[0], 0);
         startHeroRotation();
@@ -1499,6 +1881,7 @@
         modalFullscreenBtn.addEventListener('click', toggleModalFullscreen);
         modalFavoriteBtn.addEventListener('click', toggleFavorite);
         setupModalControlAutoHide();
+        toggleBackToTopButton();
     }
 
     init();

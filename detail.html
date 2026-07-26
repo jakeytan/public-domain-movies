@@ -8,6 +8,12 @@
     <meta property="og:description" content="观看并分享经典电影。">
     <meta property="og:image" content="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png">
     <meta property="og:type" content="video.movie">
+    <meta name="keywords" content="经典电影, 电影点播, 影视站, 旧片, 默片, 电影推荐">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#0f0f10">
+    <link rel="canonical" href="https://example.com/detail.html?id=1">
+    <link rel="preconnect" href="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="icon" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <title>电影详情 - 鑫艺影像馆</title>
@@ -213,10 +219,18 @@
             width: 220px;
             flex-shrink: 0;
             aspect-ratio: var(--movie-poster-aspect);
-            border-radius: 16px;
+            border-radius: 18px;
             object-fit: cover;
             background: #111;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 22px 55px rgba(0,0,0,0.58);
+            border: 1px solid rgba(255,255,255,0.12);
+            transform: translateY(0);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .detail-poster:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.7);
         }
 
         .detail-title-section {
@@ -285,6 +299,22 @@
             margin-top: 1.4rem;
             flex-wrap: wrap;
             align-items: center;
+        }
+
+        .detail-badges {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.9rem;
+        }
+
+        .detail-badge {
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.12);
         }
 
         .btn-play-large {
@@ -1061,6 +1091,7 @@
                     </div>
                 </div>
                 <div class="detail-rating" id="detailRating">⭐⭐⭐⭐⭐ 9.0</div>
+                <div class="detail-badges" id="detailBadges"></div>
                 <div class="detail-actions">
                     <button class="btn-play-large" id="playBtn">▶ 立即播放</button>
                     <button class="btn-share" id="shareMovieBtn" type="button">分享到朋友圈</button>
@@ -1806,6 +1837,11 @@
         document.getElementById('detailCast').textContent = movie.cast;
         document.getElementById('detailBackdrop').src = movie.backdrop;
         document.getElementById('detailPoster').src = movie.poster;
+        document.getElementById('detailBadges').innerHTML = [
+            `<span class="detail-badge">${getGenreLabel(movie.genre)}</span>`,
+            `<span class="detail-badge">${movie.year}</span>`,
+            `<span class="detail-badge">${movie.director}</span>`
+        ].join('');
         document.title = `${movie.title} - 鑫艺影像馆`;
         setShareMeta(movie);
 
@@ -1828,11 +1864,11 @@
         return;
     }
     grid.innerHTML = movies.map(movie => `
-        <div class="rec-card" onclick="goToDetail(${movie.id})">
-            <img class="rec-poster" src="${movie.poster}" alt="${movie.title}">
+        <div class="rec-card" onclick="goToDetail(${movie.id})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goToDetail(${movie.id});}">
+            <img class="rec-poster" src="${movie.poster}" alt="${movie.title}" loading="lazy" decoding="async">
             <div class="rec-info">
                 <div class="rec-title">${movie.title}</div>
-                <div class="rec-year">${movie.year}</div>
+                <div class="rec-year">${movie.year} · ${getGenreLabel(movie.genre)}</div>
             </div>
         </div>
     `).join('');
