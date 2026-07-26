@@ -192,6 +192,33 @@
             color: #fff;
         }
 
+        .volume-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            min-width: 150px;
+            height: 46px;
+            padding: 0 0.7rem;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+        }
+
+        .volume-control svg {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            fill: currentColor;
+            stroke: currentColor;
+        }
+
+        .volume-control input[type="range"] {
+            width: 100%;
+            accent-color: #e50914;
+            cursor: pointer;
+        }
+
         .btn-secondary {
             width: 46px;
             height: 46px;
@@ -402,6 +429,14 @@
             padding-bottom: 0;
         }
 
+        .comment-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
         .comment-author {
             color: #fff;
             font-weight: 700;
@@ -412,6 +447,20 @@
             color: #777782;
             font-size: 0.75rem;
             margin-left: 0.5rem;
+        }
+
+        .comment-delete-btn {
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            color: #ffb3b8;
+            border-radius: 999px;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.76rem;
+            cursor: pointer;
+        }
+
+        .comment-delete-btn:hover {
+            background: rgba(255,255,255,0.12);
         }
 
         .comment-text {
@@ -602,6 +651,13 @@
                 min-height: 42px;
                 border-radius: 11px;
             }
+
+            .volume-control {
+                grid-column: 1 / -1;
+                width: 100%;
+                min-width: 0;
+                height: 42px;
+            }
             .btn-secondary svg {
                 width: 20px;
                 height: 20px;
@@ -685,9 +741,46 @@
 	    <div>
 	        <a class="nav-link" href="index.html">返回首页</a>
 	        <a class="nav-link" href="favorites.html">我的收藏</a>
+            <button class="nav-link" id="openRegisterModalBtn" type="button">会员注册</button>
             <button class="nav-link" id="manageLiveBtn" type="button">管理直播</button>
 	    </div>
 </nav>
+<div class="auth-modal" id="registerModal" hidden>
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>会员注册</h2>
+            <button class="auth-close" id="closeRegisterModalBtn" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" type="button">登录</button>
+            <button class="auth-tab" id="registerTab" type="button">注册</button>
+        </div>
+        <form class="auth-form" id="loginForm" hidden>
+            <label>
+                用户名
+                <input id="loginUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="loginPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">登录</button>
+        </form>
+        <form class="auth-form" id="registerForm">
+            <label>
+                用户名
+                <input id="registerUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="registerPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">注册会员</button>
+        </form>
+        <div class="auth-status" id="authStatus"></div>
+        <div class="auth-tip">说明：现在使用后端接口保存会员账号，登录后会在当前浏览器保持会话。</div>
+    </div>
+</div>
 <main>
     <section class="player-section" aria-label="直播影片">
         <div class="player-card">
@@ -748,6 +841,13 @@
                         <path fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.35-9-9.2C1.8 7.85 3.7 5 6.8 5c1.8 0 3.1 1 3.9 2.1C11.5 6 12.8 5 14.6 5c3.1 0 5 2.85 3.8 5.8C16.4 15.65 12 20 12 20z"></path>
                     </svg>
                 </button>
+                <label class="volume-control" for="volumeSlider" title="调节音量">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 9v6h4l5 4V5L8 9H4z"></path>
+                        <path fill="none" stroke-width="2" stroke-linecap="round" d="M16 9.5a4 4 0 0 1 0 5M18.5 7a7.5 7.5 0 0 1 0 10"></path>
+                    </svg>
+                    <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" aria-label="音量">
+                </label>
             </div>
         </div>
         <div class="live-side">
@@ -806,6 +906,7 @@
 
 </main>
 <script src="player.js?v=20260531-decode-fix"></script>
+<script src="member-register.js"></script>
 <script>
     const defaultLiveChannels = [
         {
@@ -864,6 +965,7 @@
     const joinBtn = document.getElementById('joinBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const favoriteBtn = document.getElementById('favoriteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
     const playerCard = document.querySelector('.player-card');
     const liveTitle = document.getElementById('liveTitle');
     const liveDescription = document.getElementById('liveDescription');
@@ -888,6 +990,15 @@
     let editingChannelId = null;
     let controlsTimer = null;
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    function setVolume(value) {
+        const volume = Math.max(0, Math.min(1, Number(value)));
+        video.volume = volume;
+        video.muted = volume === 0;
+        volumeSlider.value = String(volume);
+        volumeSlider.setAttribute('aria-valuetext', `${Math.round(volume * 100)}%`);
+        localStorage.setItem('liveVolume', String(volume));
+    }
 
     function renderChannels() {
         channelList.innerHTML = liveChannels.map(channel => `
@@ -935,6 +1046,18 @@
         return readStorage('liveComments', {});
     }
 
+    function getCommentId(comment) {
+        return comment?.id || `${comment?.time || Date.now()}-${comment?.author || '访客'}-${comment?.text || ''}`;
+    }
+
+    function deleteLiveComment(channelId, commentId) {
+        const comments = getComments();
+        const channelComments = (comments[channelId] || []).filter(comment => getCommentId(comment) !== commentId);
+        comments[channelId] = channelComments;
+        localStorage.setItem('liveComments', JSON.stringify(comments));
+        renderComments();
+    }
+
     function renderDetails() {
         liveTitle.textContent = activeChannel.name;
         liveDescription.textContent = activeChannel.description;
@@ -950,7 +1073,13 @@
         commentCount.textContent = `${comments.length} 条`;
         commentsList.innerHTML = comments.length ? comments.map(comment => `
             <div class="comment-item">
-                <div><span class="comment-author">${escapeHTML(comment.author)}</span><span class="comment-time">${escapeHTML(comment.time)}</span></div>
+                <div class="comment-header">
+                    <div>
+                        <span class="comment-author">${escapeHTML(comment.author)}</span>
+                        <span class="comment-time">${escapeHTML(comment.time)}</span>
+                    </div>
+                    <button class="comment-delete-btn" type="button" data-comment-id="${escapeHTML(getCommentId(comment))}">删除</button>
+                </div>
                 <div class="comment-text">${escapeHTML(comment.text)}</div>
             </div>
         `).join('') : '<p class="comment-text">还没有评论，来做第一个发言的人吧。</p>';
@@ -1192,6 +1321,10 @@
 
     favoriteBtn.addEventListener('click', toggleFavoriteChannel);
 
+    volumeSlider.addEventListener('input', event => {
+        setVolume(event.target.value);
+    });
+
     manageLiveBtn.addEventListener('click', () => {
         resetLiveForm();
         toggleManagePanel(true);
@@ -1225,6 +1358,13 @@
         setLiveStatus(wasEditing ? '直播已更新' : '直播已发布');
     });
 
+    commentsList.addEventListener('click', event => {
+        const deleteBtn = event.target.closest('.comment-delete-btn');
+        if (!deleteBtn) return;
+        const commentId = deleteBtn.dataset.commentId;
+        deleteLiveComment(activeChannel.id, commentId);
+    });
+
     commentForm.addEventListener('submit', event => {
         event.preventDefault();
         const authorInput = document.getElementById('commentAuthor');
@@ -1232,6 +1372,7 @@
         const comments = getComments();
         const channelComments = comments[activeChannel.id] || [];
         channelComments.push({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
             author: authorInput.value.trim(),
             text: textInput.value.trim(),
             time: new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })
@@ -1250,6 +1391,7 @@
         renderChannels();
         renderSchedule();
         setupPlayer();
+        setVolume(localStorage.getItem('liveVolume') ?? 1);
         selectChannel(activeChannel);
         updateControlState();
         setupControlAutoHide();

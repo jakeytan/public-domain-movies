@@ -499,6 +499,27 @@
             color: #fff;
         }
 
+        .guest-comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .guest-comment-delete-btn {
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.06);
+            color: #ffb3b8;
+            border-radius: 999px;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+
+        .guest-comment-delete-btn:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
         .guest-comment-message {
             line-height: 1.8;
             color: #e4e4e4;
@@ -971,9 +992,48 @@
     <div>
         <a class="nav-link" href="live.html">直播入口</a>
         <a class="nav-link" href="favorites.html">我的收藏</a>
+        <button class="nav-link" id="openRegisterModalBtn" type="button">会员注册</button>
     </div>
     <button class="back-btn" onclick="goHome()">← 返回首页</button>
 </nav>
+
+<div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
+<div class="auth-modal" id="registerModal" hidden>
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>会员注册</h2>
+            <button class="auth-close" id="closeRegisterModalBtn" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" type="button">登录</button>
+            <button class="auth-tab" id="registerTab" type="button">注册</button>
+        </div>
+        <form class="auth-form" id="loginForm" hidden>
+            <label>
+                用户名
+                <input id="loginUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="loginPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">登录</button>
+        </form>
+        <form class="auth-form" id="registerForm">
+            <label>
+                用户名
+                <input id="registerUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="registerPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">注册会员</button>
+        </form>
+        <div class="auth-status" id="authStatus"></div>
+        <div class="auth-tip">说明：现在使用后端接口保存会员账号，登录后会在当前浏览器保持会话。</div>
+    </div>
+</div>
 
 <div class="detail-container">
     <!-- 头部 -->
@@ -1006,8 +1066,6 @@
             </div>
         </div>
     </div>
-
-    <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
 
     <!-- 内容 -->
     <div class="detail-content">
@@ -1095,6 +1153,7 @@
 </div>
 
 <script src="player.js?v=20260531-decode-fix"></script>
+<script src="member-register.js"></script>
 <script>
     // 电影数据（与主页同步）
     const moviesData = [
@@ -1629,6 +1688,18 @@
         localStorage.setItem(getCommentStorageKey(movieId), JSON.stringify(comments));
     }
 
+    function getCommentId(comment) {
+        return comment?.id || `${comment?.createdAt || Date.now()}-${comment?.name || '访客'}-${comment?.message || ''}`;
+    }
+
+    function deleteGuestComment(movieId, commentId) {
+        const comments = getGuestComments(movieId);
+        const nextComments = comments.filter(comment => getCommentId(comment) !== commentId);
+        saveGuestComments(movieId, nextComments);
+        renderComments(movieId);
+        showShareToast('留言已删除。');
+    }
+
     function renderComments(movieId) {
         const list = document.getElementById('commentList');
         const empty = document.getElementById('commentEmpty');
@@ -1658,6 +1729,9 @@
             name.className = 'guest-comment-name';
             name.textContent = comment.name || '访客';
 
+            const actions = document.createElement('div');
+            actions.className = 'guest-comment-actions';
+
             const time = document.createElement('div');
             const createdAt = new Date(comment.createdAt || Date.now());
             time.textContent = createdAt.toLocaleString('zh-CN', {
@@ -1668,8 +1742,17 @@
                 minute: '2-digit'
             });
 
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'guest-comment-delete-btn';
+            deleteBtn.textContent = '删除';
+            deleteBtn.addEventListener('click', () => deleteGuestComment(movieId, getCommentId(comment)));
+
+            actions.appendChild(time);
+            actions.appendChild(deleteBtn);
+
             meta.appendChild(name);
-            meta.appendChild(time);
+            meta.appendChild(actions);
 
             const message = document.createElement('div');
             message.className = 'guest-comment-message';
@@ -1697,6 +1780,7 @@
 
         const comments = getGuestComments(movie.id);
         comments.unshift({
+            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
             name,
             message,
             createdAt: new Date().toISOString()

@@ -860,11 +860,48 @@
         <input class="search-input" id="movieSearchInput" type="search" placeholder="搜索电影" aria-label="搜索电影">
         <a class="nav-link" href="live.html">直播入口</a>
         <a class="nav-link" href="favorites.html">我的收藏</a>
+        <button class="nav-link" id="openRegisterModalBtn" type="button">会员注册</button>
         <button class="nav-link share-link" id="shareSiteBtn" type="button">分享到朋友圈</button>
     </div>
 </nav>
 
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
+<div class="auth-modal" id="registerModal" hidden>
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>会员注册</h2>
+            <button class="auth-close" id="closeRegisterModalBtn" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" type="button">登录</button>
+            <button class="auth-tab" id="registerTab" type="button">注册</button>
+        </div>
+        <form class="auth-form" id="loginForm" hidden>
+            <label>
+                用户名
+                <input id="loginUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="loginPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">登录</button>
+        </form>
+        <form class="auth-form" id="registerForm">
+            <label>
+                用户名
+                <input id="registerUsername" type="text" maxlength="20" placeholder="请输入用户名" required>
+            </label>
+            <label>
+                密码
+                <input id="registerPassword" type="password" maxlength="40" placeholder="请输入密码" required>
+            </label>
+            <button class="auth-submit" type="submit">注册会员</button>
+        </form>
+        <div class="auth-status" id="authStatus"></div>
+        <div class="auth-tip">说明：现在使用后端接口保存会员账号，登录后会在当前浏览器保持会话。</div>
+    </div>
+</div>
 
 <section class="hero" id="heroSection">
     <img class="hero-backdrop" id="heroBackdrop" src="https://pub-c8dff8c2f0a44d65a2aa76008f27ed86.r2.dev/Circle_hb_h.png" alt="The Circus backdrop" fetchpriority="high">
@@ -949,6 +986,7 @@
 
 <script src="player.js?v=20260531-decode-fix"></script>
 <script src="movies-data.js"></script>
+<script src="member-register.js"></script>
 <script>
     let currentMovies = [...moviesData];
     let currentHeroMovie = currentMovies[0];
